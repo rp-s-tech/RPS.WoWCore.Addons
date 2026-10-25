@@ -1,0 +1,9 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+    <!-- The legacy template name remains compatible in the shared library.
+         Placeholder for future custom row/state templates.
+         SharedXML templates (WowScrollBoxList, TabSystem, PanelResizeButton) are used from Lua. -->
+    <Frame name="NobleNextLib_DummyTemplate" virtual="true">
+        <Size x="1" y="1"/>
+    </Frame>
+</Ui>

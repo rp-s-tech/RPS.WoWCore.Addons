@@ -1,0 +1,508 @@
+{
+  "source": "https://wago.tools",
+  "buildQuery": "1.60.1.70450",
+  "assets": [
+    {
+      "file": "PaperDollInfoPart1.blp",
+      "sha256": "f7c874705a734a68e817c08b00e1346b873734b8d8d6fb097687ad845412fd92",
+      "url": "https://wago.tools/api/casc/8175457?download"
+    },
+    {
+      "file": "PaperDollInfoPart2.blp",
+      "sha256": "677d8273f27612fe87fe0c02493e45086ec75d4d5a6cd4478b4634c72ea08f4c",
+      "url": "https://wago.tools/api/casc/8175455?download"
+    }
+  ],
+  "members": [
+    {
+      "name": "ui-character-info-deathknight-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        234,
+        467,
+        850
+      ]
+    },
+    {
+      "name": "ui-character-info-demonhunter-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        401,
+        634,
+        1,
+        384
+      ]
+    },
+    {
+      "name": "ui-character-info-druid-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        636,
+        869,
+        1,
+        384
+      ]
+    },
+    {
+      "name": "ui-character-info-hunter-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        401,
+        634,
+        386,
+        769
+      ]
+    },
+    {
+      "name": "ui-character-info-mage-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        469,
+        36,
+        419
+      ]
+    },
+    {
+      "name": "ui-character-info-monk-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        469,
+        472,
+        855
+      ]
+    },
+    {
+      "name": "ui-character-info-paladin-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        234,
+        1,
+        384
+      ]
+    },
+    {
+      "name": "ui-character-info-priest-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        234,
+        386,
+        769
+      ]
+    },
+    {
+      "name": "ui-character-info-rogue-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        471,
+        704,
+        36,
+        419
+      ]
+    },
+    {
+      "name": "ui-character-info-shaman-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        706,
+        939,
+        36,
+        419
+      ]
+    },
+    {
+      "name": "ui-character-info-warlock-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        471,
+        704,
+        540,
+        923
+      ]
+    },
+    {
+      "name": "ui-character-info-warrior-bg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        706,
+        939,
+        540,
+        923
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullside-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        21,
+        771,
+        814
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullside-open-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        21,
+        816,
+        859
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullside-pressed-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        21,
+        861,
+        904
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullup-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        113,
+        156,
+        771,
+        791
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullup-open-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        68,
+        111,
+        771,
+        791
+      ]
+    },
+    {
+      "name": "ui-character-info-button-pullup-pressed-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        23,
+        66,
+        771,
+        791
+      ]
+    },
+    {
+      "name": "ui-character-info-gearslot-arrow-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        126,
+        159,
+        793,
+        816
+      ]
+    },
+    {
+      "name": "ui-character-info-gearslot-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        23,
+        78,
+        793,
+        848
+      ]
+    },
+    {
+      "name": "ui-character-info-gearslotsmall-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        80,
+        124,
+        793,
+        837
+      ]
+    },
+    {
+      "name": "ui-character-info-itemlevel-bounce-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        23,
+        227,
+        850,
+        871
+      ]
+    },
+    {
+      "name": "ui-character-info-line-bounce-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        451,
+        664,
+        11,
+        29
+      ]
+    },
+    {
+      "name": "ui-character-info-outfitcard-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        23,
+        185,
+        873,
+        922
+      ]
+    },
+    {
+      "name": "ui-character-info-outfiticon-frame-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        188,
+        233,
+        793,
+        838
+      ]
+    },
+    {
+      "name": "ui-character-info-scrollfader-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        429,
+        995,
+        1019
+      ]
+    },
+    {
+      "name": "ui-character-info-scrollline-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        622,
+        832,
+        1,
+        8
+      ]
+    },
+    {
+      "name": "ui-character-info-stat-stonebg-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        469,
+        857,
+        942
+      ]
+    },
+    {
+      "name": "ui-character-info-stattab-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        187,
+        229,
+        873,
+        915
+      ]
+    },
+    {
+      "name": "ui-character-info-stattab-selected-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        77,
+        119,
+        924,
+        966
+      ]
+    },
+    {
+      "name": "ui-character-info-title-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        706,
+        907,
+        483,
+        515
+      ]
+    },
+    {
+      "name": "ui-character-info-stat-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        636,
+        869,
+        386,
+        769
+      ]
+    },
+    {
+      "name": "ui-character-info-racebg-overlay-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        23,
+        75,
+        924,
+        984
+      ]
+    },
+    {
+      "name": "ui-character-info-general-bg-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        399,
+        1,
+        465
+      ]
+    },
+    {
+      "name": "ui-character-info-icon-delete-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        161,
+        186,
+        793,
+        816
+      ]
+    },
+    {
+      "name": "ui-character-info-icon-settings-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        126,
+        151,
+        818,
+        841
+      ]
+    },
+    {
+      "name": "ui-character-info-icon-tick-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        161,
+        186,
+        818,
+        841
+      ]
+    },
+    {
+      "name": "ui-character-info-scrollline-long-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        620,
+        1,
+        9
+      ]
+    },
+    {
+      "name": "ui-character-info-stat-stonebg2-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        471,
+        704,
+        421,
+        538
+      ]
+    },
+    {
+      "name": "ui-character-info-resistance-arcane-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        34,
+        852,
+        885
+      ]
+    },
+    {
+      "name": "ui-character-info-resistance-fire-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        34,
+        887,
+        920
+      ]
+    },
+    {
+      "name": "ui-character-info-resistance-frost-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        34,
+        922,
+        955
+      ]
+    },
+    {
+      "name": "ui-character-info-resistance-nature-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        1,
+        34,
+        957,
+        990
+      ]
+    },
+    {
+      "name": "ui-character-info-resistance-shadow-c60",
+      "fileDataID": 8175455,
+      "rect": [
+        36,
+        69,
+        852,
+        885
+      ]
+    },
+    {
+      "name": "ui-character-info-icon-add-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        1,
+        19,
+        906,
+        924
+      ]
+    },
+    {
+      "name": "ui-character-info-outfitcard-hover-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        398,
+        944,
+        993
+      ]
+    },
+    {
+      "name": "ui-character-info-outfitcard-selected-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        398,
+        421,
+        470
+      ]
+    },
+    {
+      "name": "ui-character-info-line-bounce2-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        236,
+        449,
+        11,
+        34
+      ]
+    },
+    {
+      "name": "ui-character-info-stat-stonebg3-c60",
+      "fileDataID": 8175457,
+      "rect": [
+        706,
+        939,
+        421,
+        481
+      ]
+    }
+  ]
+}

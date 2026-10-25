@@ -1,0 +1,25 @@
+## Interface: 120000, 120105
+## Title: MogIt
+## Author: Aelobin (The Maelstrom EU) & Lombra (Defias Brotherhood EU)
+## Version: v4.1.7-rps.1
+## IconTexture: Interface\Icons\INV_Enchant_EssenceCosmicGreater
+## SavedVariables: MogItDB, MogItWishlist
+## Notes: Transmogrification Assistant
+## Notes-frFR: Transmogrification Assistante
+## Notes-deDE: Transmogrifikation Assistentin
+## Notes-esES: Asistente de transfiguración
+## Notes-esMX: Asistente de transfiguración
+## Notes-ruRU: трансмогрификация помощником
+## Notes-koKR: 형상변환 조교
+## Notes-zhCN: 物品幻化系统 助理
+## Notes-zhTW: 塑形 助理
+## Notes-ptBR: Assistente Transmogrification
+## Notes-itIT: Transmogrification Assistant
+## X-Curse-Project-ID: 30961
+
+Libs\Embeds.xml
+Locale\Locale.xml
+
+GUI.xml
+Core\Core.xml
+Modules\Modules.xml

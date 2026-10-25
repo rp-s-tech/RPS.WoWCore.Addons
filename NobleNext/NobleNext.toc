@@ -1,0 +1,26 @@
+## Interface: 120005, 120007, 120100, 120105
+## Title: NobleNext
+## IconTexture: Interface\AddOns\NobleNext\Assets\LogoMip
+## AddonCompartmentFunc: NobleNext_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: NobleNext_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: NobleNext_OnAddonCompartmentLeave
+## Notes: Пользовательские инструменты и трансмог. /nn.
+## Author: Role Play Systems & Noblegarden
+## Version: 0.3.182
+## Category-enUS: Custom
+## Dependencies: NobleNextLib
+## OptionalDeps: AIO_Client, HereBeDragons
+## SavedVariables: NobleNextDB
+## SavedVariablesPerCharacter: NobleNextCharDB
+NobleNext_Core.lua
+Core/QuickActions.lua
+Core/FlyoutBar.lua
+Core/LauncherEditMode.lua
+Core/MinimapLauncher.lua
+Core/LauncherBootstrap.lua
+NobleNext.lua
+Core/Extensions.lua
+Modules/RoleplayMessages/Init.lua
+Modules/Transmog/Init.lua
+Modules/CharacterFrame/Textures.lua
+Modules/CharacterFrame/Init.lua

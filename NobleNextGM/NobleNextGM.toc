@@ -1,0 +1,54 @@
+## Interface: 120005, 120007, 120100, 120105
+## Title: NobleNextGM
+## Notes: Game Master tools; requires confirmed server access.
+## Author: Role Play Systems & Noblegarden
+## Version: 0.3.182
+## Category-enUS: Custom
+## Dependencies: NobleNext, NobleNextDM
+## LoadOnDemand: 1
+Bootstrap.lua
+CommandDefinitions/_Manifest.lua
+CommandDefinitions/GObject.lua
+CommandDefinitions/Npc.lua
+CommandDefinitions/Go.lua
+CommandDefinitions/Tele.lua
+CommandDefinitions/Gps.lua
+CommandDefinitions/Lookup.lua
+CommandDefinitions/List.lua
+CommandDefinitions/CustomNpc.lua
+CommandDefinitions/Poi.lua
+CommandDefinitions/WeatherTime.lua
+CommandDefinitions/Waypoints.lua
+CommandDefinitions/RpPhase.lua
+CommandDefinitions/Completeness.lua
+Core/ChatCompletion.lua
+Libs/HereBeDragons/LibStub/LibStub.lua
+Libs/HereBeDragons/CallbackHandler-1.0/CallbackHandler-1.0.lua
+Libs/HereBeDragons/HereBeDragons-2.0.lua
+Libs/HereBeDragons/HereBeDragons-Pins-2.0.lua
+Libs/HereBeDragons/HereBeDragons-Migrate.lua
+GM/POI/Types.lua
+GM/POI/Icons.lua
+GM/POI/Cache.lua
+GM/POI/Packets.lua
+GM/POI/Sync.lua
+GM/POI/MapPins.lua
+GM/POI/Editor.lua
+GM/POI/Init.lua
+GM/Waypoints/Init.lua
+GM/Tele/Init.lua
+GM/GobMover/Init.lua
+GM/ChatActions/Registry.lua
+GM/ChatActions/Kinds/Gob.lua
+GM/ChatActions/Kinds/Item.lua
+GM/ChatActions/Kinds/Npc.lua
+GM/ChatActions/Kinds/Phase.lua
+GM/ChatActions/Init.lua
+GM/GobChat/Actions.lua
+GM/GobChat/Init.lua
+GM/Npc/Init.lua
+GM/GobGroup/Packets.lua
+GM/GobGroup/Panel.lua
+GM/GobGroup/Init.lua
+GM/CustomNPC/Init.lua
+GM/Commands/Browser.lua

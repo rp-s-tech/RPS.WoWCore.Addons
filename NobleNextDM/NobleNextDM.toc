@@ -1,0 +1,18 @@
+## Interface: 120005, 120007, 120100, 120105
+## Title: NobleNextDM
+## Notes: Dungeon Master tools; requires confirmed server access.
+## Author: Role Play Systems & Noblegarden
+## Version: 0.3.182
+## Category-enUS: Custom
+## Dependencies: NobleNext
+## LoadOnDemand: 1
+Bootstrap.lua
+CommandDefinitions/Pet.lua
+CommandDefinitions/Npccontrol.lua
+CommandDefinitions/RpPhase.lua
+GM/Army/Init.lua
+GM/Master/Init.lua
+GM/Pet/Init.lua
+GM/Phase/Panel.lua
+GM/Phase/Init.lua
+GM/Battle/Init.lua

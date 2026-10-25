@@ -1,0 +1,36 @@
+## Interface: 120005, 120007, 120100, 120105
+## Title: NobleNextLib
+## Notes: Shared runtime and presentation toolkit for NobleNext. No privileged modules.
+## Author: Role Play Systems & Noblegarden
+## Version: 0.3.182
+## Category-enUS: Libraries
+## LoadOnDemand: 0
+
+LibStub/LibStub.lua
+Core/Library.lua
+Core/Util.lua
+Core/Events.lua
+Core/Scheduler.lua
+Core/AddonMessages.lua
+Core/CommandQueue.lua
+Core/SelectionContext.lua
+Core/Phases.lua
+Core/Access.lua
+Core/CommandDefinitions.lua
+Core/Extensions.lua
+Theme/Tokens.lua
+Theme/Backdrop.lua
+Widgets/Button.lua
+Widgets/EditBox.lua
+Widgets/Dropdown.lua
+Widgets/Section.lua
+Widgets/StateView.lua
+Widgets/Confirm.lua
+Layout/Layout.lua
+Navigation/Tabs.lua
+Navigation/Sidebar.lua
+Scroll/List.lua
+Scroll/VirtualList.lua
+Window/Resize.lua
+Window/Window.lua
+Templates/Templates.xml
