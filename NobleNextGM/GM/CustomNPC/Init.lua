@@ -653,7 +653,7 @@ local function InitCustomNpcModule(parent)
         end
         if f.FaceHeader then
             f.FaceHeader:SetText(string.format(
-                "Вид %d — %s → выбор %d/%d",
+                "Вид %d — %s -> выбор %d/%d",
                 State.variation or 1,
                 State.faceOptionName or ("Опция " .. tostring(State.faceOptionIndex or "-")),
                 State.faceCurrentChoiceIndex or 0,
@@ -1240,7 +1240,7 @@ local function InitCustomNpcModule(parent)
             fs:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
             fs:SetJustifyH("LEFT")
             local selected = tonumber(State.faceCurrentChoiceIndex) == tonumber(row.index)
-            local mark = selected and "|cff00cc66● |r" or ""
+            local mark = selected and "|cff00cc66[x] |r" or ""
             fs:SetText(string.format("%s%d: %s", mark, tonumber(row.index) or 0, row.name or "?"))
             if btn.SetBackdropBorderColor then
                 if selected then

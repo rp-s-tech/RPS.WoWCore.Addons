@@ -5,7 +5,7 @@ local ns = LibStub("NobleNextLib-1.0").Runtime
 ns.Events = ns.Events or {}
 ns.Util = ns.Util or {}
 
--- eventName → { [key] = subscription }; identity distinguishes replacements.
+-- eventName -> { [key] = subscription }; identity distinguishes replacements.
 local subscribers = {}
 
 ---Подписаться на событие. Повторный key заменяет handler (с диагностикой).
@@ -88,7 +88,7 @@ ns.Events.Emit = ns.Emit
 -- ---------------------------------------------------------------------------
 -- Slash commands (idempotent by SlashCmdList key)
 -- ---------------------------------------------------------------------------
-local registeredSlash = {} -- key → handler
+local registeredSlash = {} -- key -> handler
 
 ---Зарегистрировать slash-команду. Повторный key с другим handler — диагностика, без silent overwrite.
 ---@param key string ключ SlashCmdList (например "NNARMY")

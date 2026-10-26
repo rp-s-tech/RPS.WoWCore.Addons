@@ -14,8 +14,9 @@ function ns.CreateLauncherIcon(parent, texture, isLogo, size)
         local icon = parent:CreateTexture(nil, "ARTWORK")
         icon:SetSize(28 * scale, 28 * scale)
         icon:SetPoint("CENTER")
-        -- TGA has no authored mip chain: minifying 256px with LINEAR aliases.
-        icon:SetTexture("Interface\\AddOns\\NobleNext\\Assets\\LogoMip.blp", "CLAMP", "CLAMP", "TRILINEAR")
+        -- Prepared at 128px with antialiased edges and explicit 8-bit alpha.
+        -- A distinct path also avoids reusing the legacy BLP texture cache.
+        icon:SetTexture("Interface\\AddOns\\NobleNext\\Assets\\LogoLauncher.tga", "CLAMP", "CLAMP", "LINEAR")
         icon:SetSnapToPixelGrid(false)
         icon:SetTexelSnappingBias(0)
         return icon

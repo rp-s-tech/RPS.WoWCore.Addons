@@ -1,6 +1,6 @@
 -- Loaded through the NobleNextGM private extension namespace.
 -- CommandDefinitions/Poi.lua — каталог `.poi` (custom_poi_commands.cpp)
--- + алиас `.poilist` → `.poi list` (custom_nn_commands.cpp).
+-- + алиас `.poilist` -> `.poi list` (custom_nn_commands.cpp).
 
 local _, ns = ...
 

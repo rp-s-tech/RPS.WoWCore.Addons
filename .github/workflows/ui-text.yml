@@ -1,0 +1,14 @@
+name: UI text
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -B -m unittest discover -s tools -p test_ui_text.py
+      - run: python -B tools/check_ui_text.py

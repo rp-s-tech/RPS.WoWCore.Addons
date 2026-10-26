@@ -211,7 +211,7 @@ local function SendBlueprintCmd(verb, argValues, tag)
     -- The server removes exactly one trailing flag, preserving the user's name.
     cmd = cmd .. " silent"
     if ns.PrintDebug then
-        ns.PrintDebug("GobBlueprint → " .. cmd)
+        ns.PrintDebug("GobBlueprint -> " .. cmd)
     end
     SetStatus("Отправка…", "info")
     if ns.EnqueueCommand then
@@ -278,7 +278,7 @@ local MAX_NEAR_RADIUS = 1000
 local function SendGroupCmd(verb, argValues, tag)
     local cmd = FormatGroupCmd(verb, argValues)
     if ns.PrintDebug then
-        ns.PrintDebug("GobGroup → " .. cmd)
+        ns.PrintDebug("GobGroup -> " .. cmd)
     end
     SetStatus("Отправка: " .. cmd, "info")
     if ns.EnqueueCommand then
@@ -1477,7 +1477,7 @@ function Panel.Init(parent)
     Ui.blueprintHint:SetPoint("TOPRIGHT", srcSec, "TOPRIGHT", -12, -48)
     Ui.blueprintHint:SetJustifyH("LEFT")
     Ui.blueprintHint:SetTextColor(0.7, 0.72, 0.75, 1)
-    Ui.blueprintHint:SetText("Шаблон = снимок активной группы. Другую группу: «Выбрать группу…» → клик в списке → вернуться и сохранить.")
+    Ui.blueprintHint:SetText("Шаблон = снимок активной группы. Другую группу: «Выбрать группу…» -> клик в списке -> вернуться и сохранить.")
 
     local pickGroupBtn = MakeBtn(srcSec, "Выбрать группу…", 140, "list", function()
         Ui.pendingBlueprintPick = true
@@ -1495,7 +1495,7 @@ function Panel.Init(parent)
             radius = 50
         end
         SendGroupCmd("near", { radius = radius, [1] = radius }, "gobblueprint:pick-near")
-        SetStatus(string.format("Ищем группы в радиусе %d… Клик по строке → источник снимка.", radius), "info")
+        SetStatus(string.format("Ищем группы в радиусе %d… Клик по строке -> источник снимка.", radius), "info")
     end)
     pickNearBtn:SetPoint("LEFT", pickGroupBtn, "RIGHT", 8, 0)
     Ui.buttons.blueprint_pick_near = pickNearBtn
@@ -1944,9 +1944,9 @@ function Panel.Init(parent)
 
     Ui.refreshBlueprintScopeButtons = function()
         local scope = Ui.blueprintListScope or "mine"
-        scopeMineBtn:SetText(scope == "mine" and "• Мои" or "Мои")
-        scopePublicBtn:SetText(scope == "public" and "• Публичные" or "Публичные")
-        scopeAllBtn:SetText(scope == "all" and "• Все" or "Все")
+        scopeMineBtn:SetText(scope == "mine" and "* Мои" or "Мои")
+        scopePublicBtn:SetText(scope == "public" and "* Публичные" or "Публичные")
+        scopeAllBtn:SetText(scope == "all" and "* Все" or "Все")
     end
     Ui.refreshBlueprintScopeButtons()
 

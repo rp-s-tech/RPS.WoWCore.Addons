@@ -116,7 +116,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wp", "delay" },
         serverPath = "wp delay",
         syntax = ".wp delay <wpId> <pathId> <seconds>",
-        description = "Установить delay точки waypoint_data (секунды → мс в БД).",
+        description = "Установить delay точки waypoint_data (секунды -> мс в БД).",
         args = {
             { name = "wpId", type = "number", required = true },
             { name = "pathId", type = "number", required = true },

@@ -2,6 +2,7 @@ local ns = LibStub("NobleNextLib-1.0").Runtime
 local Launcher = {}
 ns.MinimapLauncher = Launcher
 local SIZE, EDGE, VERSION = 36, 6, 1
+local create
 
 local function finite(value)
     return type(value) == "number" and value == value and value > -math.huge and value < math.huge
@@ -117,17 +118,22 @@ function Launcher:SetEditMode(enabled)
     return true
 end
 function Launcher:ResetPosition()
-    if not self.db or inCombat() then return false end
+    if inCombat() then return false end
+    if not self.button then create() end
+    if not self.button then return false end
     self:StopDragging(false)
     self.db.mode, self.db.customPos = "docked", nil
     self:CloseFlyout()
     self:ApplyPosition()
+    -- Reset is also the recovery path for a hidden launcher, not only its anchor.
+    self.button:SetAlpha(1)
+    self.button:Show()
     if ns.LauncherEditMode then ns.LauncherEditMode:NotifyChanged() end
     return true
 end
 function ns.ResetMinimapButtonPosition() return Launcher:ResetPosition() end
 
-local function create()
+create = function()
     if Launcher.button or not Minimap then return end
     Launcher.db = settings()
     local button = CreateFrame("Button", "NobleNextMinimapButton", UIParent)
@@ -262,5 +268,8 @@ function ns.InitializeMinimapLauncher()
             Launcher:SetEditMode(false)
         end, Launcher)
     end
+    -- Initialization can run after PLAYER_LOGIN (for example after a late load).
+    -- SavedVariables are already available then; do not wait for another login.
+    if IsLoggedIn and IsLoggedIn() then create() end
     return Launcher
 end

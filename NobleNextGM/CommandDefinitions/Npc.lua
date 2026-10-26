@@ -215,7 +215,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "npc", "set", "scale" },
         serverPath = "npc set scale",
         syntax = ".npc set scale <scale>",
-        description = "Масштаб NPC (≤0 сбрасывает к шаблону); сохраняет size в БД.",
+        description = "Масштаб NPC (<=0 сбрасывает к шаблону); сохраняет size в БД.",
         args = {
             { name = "scale", type = "number", required = true },
         },

@@ -335,7 +335,7 @@ local function Rewrite(msg)
         if guid then
             local goName = ExtractGoName(msg) or (pendingTargetSelect and pendingTargetSelect.name)
             NotifyChatRecord({ guid = tonumber(guid), entry = tonumber(entry), name = goName, kind = "world" })
-            -- .gobject target → сразу цель GobMover / SelectionContext
+            -- .gobject target -> сразу цель GobMover / SelectionContext
             -- (кнопка «Выбрать ближайший GO» = тот же путь).
             if pendingTargetSelect and (isSelectedRecord(msg) or (selectedBody and isSelectedRecord(selectedBody))) then
                 SetGobMoverTarget(guid, goName, entry)

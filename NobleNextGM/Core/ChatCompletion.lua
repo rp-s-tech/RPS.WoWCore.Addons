@@ -46,7 +46,7 @@ local function matchCompletionRoot(text)
         end
     end
 
-    -- Незавершённый ввод корня: ".gobje" → gobject, ".g" → несколько, берём longest prefix match
+    -- Незавершённый ввод корня: ".gobje" -> gobject, ".g" -> несколько, берём longest prefix match
     local best, bestLen = nil, 0
     for _, root in ipairs(rootsLongestFirst()) do
         if root:sub(1, #first) == first and #root > bestLen then
@@ -67,7 +67,7 @@ local function candidateToString(c)
     if type(c) ~= "table" then
         return nil
     end
-    -- CommandDefinitions.Complete → { text=, def=, kind=, detail= }
+    -- CommandDefinitions.Complete -> { text=, def=, kind=, detail= }
     local s = c.text or c.insert or c.completion or c.value or c.full or c.serverPath
     if type(s) == "string" and s ~= "" then
         return s

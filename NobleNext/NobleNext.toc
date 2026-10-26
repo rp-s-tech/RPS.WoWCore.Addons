@@ -1,6 +1,6 @@
 ## Interface: 120005, 120007, 120100, 120105
 ## Title: NobleNext
-## IconTexture: Interface\AddOns\NobleNext\Assets\LogoMip
+## IconTexture: Interface\AddOns\NobleNext\Assets\LogoLauncher.tga
 ## AddonCompartmentFunc: NobleNext_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: NobleNext_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: NobleNext_OnAddonCompartmentLeave

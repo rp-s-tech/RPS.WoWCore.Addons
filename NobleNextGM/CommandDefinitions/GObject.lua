@@ -105,7 +105,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "list" },
         aliases = withGobAlias({ "gobject", "list" }),
         syntax = ".gobject list <my|playerName> [phaseId|all]",
-        description = "Список постоянных GO по Battle.net-аккаунту (gameobject_extra). my = текущий bnet; имя персонажа → его bnet. Без phase — текущий RP context; all — все фазы. Чужие аккаунты требуют RBAC 3045.",
+        description = "Список постоянных GO по Battle.net-аккаунту (gameobject_extra). my = текущий bnet; имя персонажа -> его bnet. Без phase — текущий RP context; all — все фазы. Чужие аккаунты требуют RBAC 3045.",
         args = {
             { name = "who", type = "string", required = true },
             { name = "phase", type = "string", required = false },
@@ -134,7 +134,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "pick" },
         aliases = withGobAlias({ "gobject", "pick" }),
         syntax = ".gobject pick [entry] [radius=15] [--live]",
-        description = "Список GO текущей logical RP phase из БД без event LIMIT. Ближайший persistent → last targeted. --live добавляет видимые temp (без delete/replace).",
+        description = "Список GO текущей logical RP phase из БД без event LIMIT. Ближайший persistent -> last targeted. --live добавляет видимые temp (без delete/replace).",
         args = {
             { name = "entry", type = "entry", required = false },
             { name = "radius", type = "number", required = false, default = 15 },
@@ -308,7 +308,7 @@ ns.CommandDefinitions.RegisterMany({
         aliases = withGobAlias({ "gobject", "replace", "radius" }),
         serverPath = "gobject replace radius",
         syntax = ".gobject replace radius <oldEntry> <newEntry> [radius=5] [confirm] [--all-phases]",
-        description = "Заменить все same-phase spawn oldEntry→newEntry в радиусе (cap 50). Guid сохраняется. confirm обязателен при >1 совпадении.",
+        description = "Заменить все same-phase spawn oldEntry->newEntry в радиусе (cap 50). Guid сохраняется. confirm обязателен при >1 совпадении.",
         args = {
             { name = "oldEntry", type = "entry", required = true },
             { name = "newEntry", type = "entry", required = true },
@@ -388,7 +388,7 @@ ns.CommandDefinitions.RegisterMany({
 
     ---------------------------------------------------------------------------
     -- GobGroup (23) — custom_gobgroup_commands.cpp
-    -- Контракт: явный <group-guid> = root|member → canonical root (кроме info/list/…).
+    -- Контракт: явный <group-guid> = root|member -> canonical root (кроме info/list/…).
     ---------------------------------------------------------------------------
     {
         path = { "gobject", "group", "help" },
@@ -423,7 +423,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "group", "use" },
         aliases = withGobAlias({ "gobject", "group", "use" }),
         syntax = ".gobject group use <group-guid>",
-        description = "Активировать группу (UI-контекст) по root или любому member GUID → canonical root.",
+        description = "Активировать группу (UI-контекст) по root или любому member GUID -> canonical root.",
         args = {
             { name = "groupGuid", type = "spawnId", required = true },
         },
@@ -655,7 +655,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "group", "sync" },
         aliases = withGobAlias({ "gobject", "group", "sync" }),
         syntax = ".gobject group sync <group-guid>",
-        description = "Поставить задачу sync группы (async → RESULT queued).",
+        description = "Поставить задачу sync группы (async -> RESULT queued).",
         args = {
             { name = "groupGuid", type = "spawnId", required = true },
         },
@@ -851,7 +851,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "blueprint", "new" },
         aliases = withGobAlias({ "gobject", "blueprint", "new" }),
         syntax = ".gobject blueprint new $name",
-        description = "Снимок active GobGroup → новый private шаблон.",
+        description = "Снимок active GobGroup -> новый private шаблон.",
         args = { { name = "name", type = "string", required = true } },
         destructive = "metadata",
         console = false,
@@ -953,7 +953,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "gobject", "blueprint", "member", "remove" },
         aliases = withGobAlias({ "gobject", "blueprint", "member", "remove" }),
         syntax = ".gobject blueprint member remove object|group <key> <id>",
-        description = "Убрать объект или group-part; удаление root → виртуальный центр.",
+        description = "Убрать объект или group-part; удаление root -> виртуальный центр.",
         args = {
             { name = "kind", type = "string", required = true },
             { name = "name", type = "string", required = true },

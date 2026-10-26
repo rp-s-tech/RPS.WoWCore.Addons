@@ -87,7 +87,7 @@ local function splitWhitespace(s)
     return out
 end
 
---- Flatten path: string | string[] → tokens[]; spaced elements become multiple tokens.
+--- Flatten path: string | string[] -> tokens[]; spaced elements become multiple tokens.
 --- Returns tokens, originalJoined (for serverPath default before flatten join).
 local function normalizePath(path)
     if path == nil then
@@ -621,7 +621,7 @@ function CD.Format(def, argValues)
     return table.concat(parts, " ")
 end
 
---- capsMap: path/serverPath → allowed (truthy). Missing key = not allowed.
+--- capsMap: path/serverPath -> allowed (truthy). Missing key = not allowed.
 function CD.CanRun(def, capsMap)
     def = CD.Find(def)
     if not def then

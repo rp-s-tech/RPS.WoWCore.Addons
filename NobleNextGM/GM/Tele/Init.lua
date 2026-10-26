@@ -41,7 +41,7 @@ local function SendTeleCmd(cmd, tag)
         return false
     end
     if ns.PrintDebug then
-        ns.PrintDebug("Tele → " .. cmd)
+        ns.PrintDebug("Tele -> " .. cmd)
     end
     if ns.EnqueueCommand then
         ns.EnqueueCommand(cmd, { tag = tag or "tele" })

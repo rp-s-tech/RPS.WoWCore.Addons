@@ -90,7 +90,7 @@ end
 
 function ns.PoiColorMarkup(entry)
     if not entry then return "" end
-    return string.format("|cff%s■|r %s", entry.color, entry.label)
+    return string.format("|cff%s[]|r %s", entry.color, entry.label)
 end
 
 function ns.PoiDescriptionForStorage(value)

@@ -87,7 +87,7 @@ function ns.PrintError(msg)
 end
 
 -- ---------------------------------------------------------------------------
--- CreateNG* adapters (compat shims → NobleNextLib)
+-- CreateNG* adapters (compat shims -> NobleNextLib)
 -- ---------------------------------------------------------------------------
 function ns.CreateNGSection(parent, titleText, width, height)
     return NNL.Widgets.CreateSectionLegacy(parent, titleText, width, height)
@@ -241,7 +241,7 @@ end
 -- Module registry (stable id + legacy title keys)
 -- ---------------------------------------------------------------------------
 ns.modules = {} -- keyed by stable id
-ns.modulesByTitle = {} -- legacy title → id
+ns.modulesByTitle = {} -- legacy title -> id
 
 local MODULE_DEFAULTS = {
     ["RP Фазы"] = { id = "phase", order = 100, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/Icons/inv_misc_map02", slash = "/nnphases" },
@@ -782,7 +782,7 @@ function ns.AIOHandle(handlerName, methodName, ...)
         ns.PrintError("AIO не загружен. Убедитесь, что аддон AIO_Client установлен и включен.")
         return false
     end
-    ns.PrintDebug(string.format("AIO → %s.%s", handlerName, methodName))
+    ns.PrintDebug(string.format("AIO -> %s.%s", handlerName, methodName))
     local ok, err = pcall(AIO.Handle, handlerName, methodName, ...)
     if not ok then
         ns.PrintError(string.format("AIO %s.%s: %s", handlerName, methodName, tostring(err)))
@@ -816,7 +816,7 @@ function ns.SendGmWhisper(cmd)
         ns.PrintError("Не удалось определить имя персонажа для whisper.")
         return false
     end
-    ns.PrintDebug("GM whisper → " .. text)
+    ns.PrintDebug("GM whisper -> " .. text)
     SendChatMessage(text, "WHISPER", nil, target)
     return true
 end
@@ -837,6 +837,10 @@ function ns.PrintStatus()
         ns.Print(package.name..": "..package.state..(package.reason and (" ("..package.reason..")") or ""))
     end
     ns.Print("/nn status retry — повторить проверку доступа и загрузку расширений.")
+    local launcher = ns.MinimapLauncher
+    local button = launcher and launcher.button
+    ns.Print("Иконка: " .. (not button and "не создана" or (button:IsShown() and "показана" or "скрыта"))
+        .. "; восстановление: /nn minimap reset.")
 end
 
 local function NobleNextSlashHandler(msg)
@@ -853,7 +857,12 @@ local function NobleNextSlashHandler(msg)
         local launcher = ns.MinimapLauncher
         if not launcher then ns.PrintError("Иконка ещё не загружена."); return end
         local action = rest:lower()
-        if action == "reset" then launcher:ResetPosition()
+        if action == "reset" then
+            if launcher:ResetPosition() then
+                ns.Print("Иконка показана; положение сброшено под миникарту.")
+            else
+                ns.PrintError("Не удалось восстановить иконку. Завершите бой и повторите /nn minimap reset.")
+            end
         elseif action == "lock" then launcher:SetEditMode(false)
         elseif action == "edit" then launcher:OpenSettings()
         else ns.Print("Иконка: /nn minimap reset, /nn minimap lock, /nn minimap edit.") end
@@ -883,7 +892,7 @@ local function NobleNextSlashHandler(msg)
         ns.ResetLayout()
     elseif cmd == "help" then
         ns.Print("Команды: /nn, /nn status, /nn resetlayout, /nntransmogsync. Служебные разделы открываются по уровню, подтверждённому сервером.")
-        ns.Print("Иконка: /nn minimap reset | lock | edit. Shift+ЛКМ — быстрые иконки; ПКМ — настройки.")
+        ns.Print("Иконка: /nn minimap reset | lock | edit. ПКМ — быстрые действия; Shift+ЛКМ — все действия и настройки.")
         if ns.Access.Allows(1) then ns.Print("ДМ: /nnmaster, /nnarmy, /nnpet, /nnbattle, /nnphases") end
         if ns.Access.Allows(2) then ns.Print("ГМ: /nn commands, /nngobmover, /nngobgroup, /nnnpc, /nnpoi, /nntele, /nnwaypoints") end
         ns.Print("Отладка AIO: /nn debug")

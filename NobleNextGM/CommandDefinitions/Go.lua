@@ -1,6 +1,6 @@
 -- Loaded through the NobleNextGM private extension namespace.
 -- CommandDefinitions/Go.lua — каталог `.go *` (cs_go.cpp)
--- Vanilla only: 18 leaves. `.go` и `.go xyz` → HandleGoXYZCommand.
+-- Vanilla only: 18 leaves. `.go` и `.go xyz` -> HandleGoXYZCommand.
 -- Не путать с `.gobject` / `.gobject tele`.
 
 local _, ns = ...

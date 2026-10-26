@@ -7,7 +7,7 @@ ns.Phases = ns.Phases or {}
 local P = ns.Phases
 
 P.PREFIX = "NN_RPPHASE"
--- CAPS→CONTEXT→LIST sync + multipart LIST with capability fields needs headroom.
+-- CAPS->CONTEXT->LIST sync + multipart LIST with capability fields needs headroom.
 P.TIMEOUT = 15
 P.State = P.State or {
     current = nil,
@@ -387,7 +387,7 @@ local function pumpSendQueue()
     if not onSentOk and ns.PrintError then
         ns.PrintError("Phases send onSent: " .. tostring(onSentErr))
     end
-    -- Small delay keeps addon-whisper packets ordered on the client→server channel.
+    -- Small delay keeps addon-whisper packets ordered on the client->server channel.
     C_Timer.After(0.05, function()
         sendBusy = false
         pumpSendQueue()
@@ -635,7 +635,7 @@ function P.HandlePacket(message)
     end
 end
 
--- Ordered CAPS → CONTEXT → LIST used by Codex refresh.
+-- Ordered CAPS -> CONTEXT -> LIST used by Codex refresh.
 function P.Sync(callback)
     local result = { caps = nil, current = nil, list = nil }
     P.GetCaps(function(okCaps, caps)
@@ -786,7 +786,7 @@ function P.SetOwner(phaseId, characterName, callback)
     return request("SET_OWNER", { phaseId, characterName, "force" }, nil, callback)
 end
 
--- Снимок одной phase: INFO → MEMBERS → RULES (сериализовано).
+-- Снимок одной phase: INFO -> MEMBERS -> RULES (сериализовано).
 function P.Get(phaseId, callback)
     phaseId = decimalId(phaseId)
     if not phaseId then

@@ -134,7 +134,7 @@ local function InitArmyModule(parent)
 end
 
 -- ---------------------------------------------------------------------------
--- Server → Client callbacks
+-- Server -> Client callbacks
 -- ---------------------------------------------------------------------------
 function _G.NobleNextArmy.OnSelectNewNPCs(NPCTable)
     local list = NPCTable or {}

@@ -6,7 +6,7 @@ local ns = LibStub("NobleNextLib-1.0").Runtime
 
 ns.AddonMessages = ns.AddonMessages or {}
 
--- prefix → { { handler=fn, key?=string }, ... }
+-- prefix -> { { handler=fn, key?=string }, ... }
 local handlersByPrefix = {}
 
 local function ensureRegistered(prefix)

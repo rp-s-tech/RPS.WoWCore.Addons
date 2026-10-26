@@ -199,7 +199,7 @@ local function SendWorldCommand(cmd, tag)
     return false
 end
 
---- Object mode → AIO; Group mode → `.gobject group nudge|rotate|scale` (server-side).
+--- Object mode -> AIO; Group mode -> `.gobject group nudge|rotate|scale` (server-side).
 local function CallEdit(objectMethod, groupBuilder, ...)
     if not RequireTarget() then return end
     for i = 1, select("#", ...) do
@@ -432,7 +432,7 @@ local function MakeGobBtn(parent, text, width, height, style, onClick, tooltip)
 end
 
 local function BuildPresetChips(parent, presets, x, y, chipW, chipH, onSelect)
-    local prev
+    local prev, buttons = nil, {}
     for _, item in ipairs(presets) do
         local label = type(item) == "table" and item[1] or tostring(item)
         local val = type(item) == "table" and item[2] or tostring(item)
@@ -445,7 +445,9 @@ local function BuildPresetChips(parent, presets, x, y, chipW, chipH, onSelect)
             btn:SetPoint("LEFT", prev, "RIGHT", 3, 0)
         end
         prev = btn
+        buttons[#buttons + 1] = btn
     end
+    return buttons
 end
 
 -- ---------------------------------------------------------------------------
@@ -456,6 +458,37 @@ local MiniSuite = {
     inspector = nil,
     history = nil,
 }
+
+-- Reuse the common row layout: narrow palettes wrap instead of clipping.
+local function MiniRow(parent, controls, y, inset)
+    inset = inset or 8
+    for _, control in ipairs(controls) do control:SetHeight(22) end
+    return -NNL.Layout.PlaceRow(controls, parent, inset, -y, 4, parent:GetWidth() - inset) + 6
+end
+
+local function FitMiniSections(win, sections, footer)
+    local body = win:GetContent()
+    local lastWidth, arranging
+    function win:Relayout()
+        local width = body:GetWidth()
+        if arranging or width <= 0 or width == lastWidth then return end
+        arranging, lastWidth = true, width
+        local y = 6
+        for _, section in ipairs(sections) do
+            local frame = section.frame
+            frame:ClearAllPoints()
+            frame:SetPoint("TOPLEFT", body, "TOPLEFT", 6, -y)
+            frame:SetPoint("TOPRIGHT", body, "TOPRIGHT", -6, -y)
+            if section.layout then frame:SetHeight(section.layout(frame)) end
+            y = y + frame:GetHeight() + 6
+        end
+        if footer then y = MiniRow(body, footer, y, 6) end
+        self:SetContentHeight(y)
+        arranging = false
+    end
+    body:HookScript("OnSizeChanged", function() win:Relayout() end)
+    win:Relayout()
+end
 
 RefreshHistoryView = function()
     if not MiniSuite.history or not MiniSuite.history.list then
@@ -512,13 +545,13 @@ local function EnsureMiniInspector()
         name = "NobleNextGobMiniInspector",
         title = "Инспектор и спавн GO",
         icon = "Interface\\Icons\\inv_misc_enggizmos_swissarmy",
-        width = 268,
+        width = 304,
         height = 318,
         strata = "HIGH",
     })
     local body = win:GetContent()
 
-    local infoCard = NNL.Widgets.CreateSection(body, { height = 54, divider = false })
+    local infoCard = NNL.Widgets.CreateSection(body, { height = 64, divider = false })
     infoCard:SetPoint("TOPLEFT", body, "TOPLEFT", 6, -6)
     infoCard:SetPoint("TOPRIGHT", body, "TOPRIGHT", -6, -6)
     NNL.Theme.Apply(infoCard, "card")
@@ -527,13 +560,15 @@ local function EnsureMiniInspector()
     nameLbl:SetPoint("TOPLEFT", infoCard, "TOPLEFT", 8, -7)
     nameLbl:SetPoint("TOPRIGHT", infoCard, "TOPRIGHT", -8, -7)
     nameLbl:SetJustifyH("LEFT")
+    nameLbl:SetHeight(14)
     if nameLbl.SetWordWrap then nameLbl:SetWordWrap(false) end
     nameLbl:SetTextColor(1, 0.82, 0)
     table.insert(Ui.targetLabels, nameLbl)
 
     local subLbl = infoCard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    subLbl:SetPoint("TOPLEFT", nameLbl, "BOTTOMLEFT", 0, -4)
-    subLbl:SetPoint("TOPRIGHT", infoCard, "TOPRIGHT", -8, -24)
+    subLbl:SetPoint("TOPLEFT", infoCard, "TOPLEFT", 8, -25)
+    subLbl:SetPoint("TOPRIGHT", infoCard, "TOPRIGHT", -8, -25)
+    subLbl:SetHeight(28)
     subLbl:SetJustifyH("LEFT")
     if subLbl.SetWordWrap then subLbl:SetWordWrap(true) end
     subLbl:SetTextColor(0.75, 0.78, 0.84)
@@ -545,6 +580,7 @@ local function EnsureMiniInspector()
     scaleSec:SetPoint("TOPRIGHT", infoCard, "BOTTOMRIGHT", 0, -6)
 
     local scLbl = ns.CreateNGLabel(scaleSec, "Размер:")
+    scLbl:SetSize(48, 20)
     scLbl:SetPoint("TOPLEFT", scaleSec, "TOPLEFT", 8, -32)
     table.insert(Ui.scaleLabels, scLbl)
 
@@ -557,7 +593,7 @@ local function EnsureMiniInspector()
     end)
     scBtn:SetPoint("LEFT", scBox, "RIGHT", 6, 0)
 
-    BuildPresetChips(scaleSec, { "0.5", "0.75", "1", "1.25", "1.5", "2" }, 8, -54, 38, 18, function(v)
+    local scaleChips = BuildPresetChips(scaleSec, { "0.5", "0.75", "1", "1.25", "1.5", "2" }, 8, -54, 38, 20, function(v)
         SetScaleText(v)
     end)
 
@@ -567,6 +603,7 @@ local function EnsureMiniInspector()
     spawnSec:SetPoint("TOPRIGHT", scaleSec, "BOTTOMRIGHT", 0, -6)
 
     local enLbl = ns.CreateNGLabel(spawnSec, "Entry:")
+    enLbl:SetSize(40, 20)
     enLbl:SetPoint("TOPLEFT", spawnSec, "TOPLEFT", 8, -30)
     local enBox = ns.CreateNGEditBox(spawnSec, "GobMover_MiniEntry", 76, 20)
     enBox:SetPoint("LEFT", enLbl, "RIGHT", 6, 0)
@@ -635,6 +672,22 @@ local function EnsureMiniInspector()
     end)
     delBtn:SetPoint("LEFT", grpBtn, "RIGHT", 4, 0)
 
+    FitMiniSections(win, {
+        {frame = infoCard},
+        {frame = scaleSec, layout = function(section)
+            local y = MiniRow(section, {scLbl, scBox, scBtn}, 32)
+            return MiniRow(section, scaleChips, y) + 2
+        end},
+        {frame = spawnSec, layout = function(section)
+            local y = MiniRow(section, {enLbl, enBox, fillActiveBtn}, 32)
+            return MiniRow(section, {spBtn, tmpBtn, dupBtn, repBtn}, y) + 2
+        end},
+        {frame = actSec, layout = function(section)
+            local y = MiniRow(section, {goToBtn, pullBtn, useBtn}, 32)
+            return MiniRow(section, {chkBtn, grpBtn, delBtn}, y) + 2
+        end},
+    })
+
     MiniSuite.inspector = win
     SyncTargetPresentation()
     return win
@@ -652,14 +705,15 @@ local function EnsureMiniHistory()
         name = "NobleNextGobMiniHistory",
         title = "История и поиск GO",
         icon = "Interface\\Icons\\inv_misc_spyglass_03",
-        width = 320,
+        width = 352,
         height = 296,
         strata = "HIGH",
     })
     local body = win:GetContent()
 
-    local filterBox = ns.CreateNGEditBox(body, "GobMover_MiniFilter", 136, 20)
-    filterBox:SetPoint("TOPLEFT", body, "TOPLEFT", 6, -6)
+    local toolbar = CreateFrame("Frame", nil, body)
+    local filterBox = ns.CreateNGEditBox(toolbar, "GobMover_MiniFilter", 136, 20)
+    filterBox:SetPoint("TOPLEFT", toolbar, "TOPLEFT", 6, -6)
     win.filterBox = filterBox
     filterBox:SetScript("OnTextChanged", function()
         RefreshHistoryView()
@@ -669,33 +723,33 @@ local function EnsureMiniHistory()
         self:ClearFocus()
     end)
 
-    local loBtn = MakeGobBtn(body, ".lo ob", 50, 20, "primary", function()
+    local loBtn = MakeGobBtn(toolbar, "Найти", 50, 20, "primary", function()
         LookupObjectsByQuery(filterBox)
     end, "Найти шаблон GO по имени (.lookup object) — результаты появятся в списке и чате")
     loBtn:SetPoint("LEFT", filterBox, "RIGHT", 4, 0)
 
-    local nearBtn = MakeGobBtn(body, "Рядом", 54, 20, nil, function()
+    local nearBtn = MakeGobBtn(toolbar, "Рядом", 54, 20, nil, function()
         Ui.historyMode = "recent"
         SendWorldCommand("gobject near 25", "gobmover:near")
         RefreshHistoryView()
     end, "Показать объекты в радиусе 25 ярдов (.gobject near 25)")
     nearBtn:SetPoint("LEFT", loBtn, "RIGHT", 4, 0)
 
-    local mineFetchBtn = MakeGobBtn(body, "Мои БД", 56, 20, nil, function()
+    local mineFetchBtn = MakeGobBtn(toolbar, "Мои БД", 56, 20, nil, function()
         Ui.historyMode = "mine"
         ns.AIOHandle(AIO_HANDLER, "GetMineList", false, 0, 200)
         RefreshHistoryView()
     end, "Загрузить список ваших объектов из БД (AIO GetMineList)")
     mineFetchBtn:SetPoint("LEFT", nearBtn, "RIGHT", 4, 0)
 
-    local modeRecentBtn = MakeGobBtn(body, "Недавние / Чат", 148, 18, nil, function()
+    local modeRecentBtn = MakeGobBtn(toolbar, "Недавние / Чат", 148, 20, nil, function()
         Ui.historyMode = "recent"
         RefreshHistoryView()
     end)
     modeRecentBtn:SetPoint("TOPLEFT", filterBox, "BOTTOMLEFT", 0, -4)
     win.modeRecentBtn = modeRecentBtn
 
-    local modeMineBtn = MakeGobBtn(body, "Личные объекты (БД)", 148, 18, nil, function()
+    local modeMineBtn = MakeGobBtn(toolbar, "Мои объекты", 148, 20, nil, function()
         Ui.historyMode = "mine"
         if #Ui.mineRows == 0 then
             ns.AIOHandle(AIO_HANDLER, "GetMineList", false, 0, 200)
@@ -706,6 +760,7 @@ local function EnsureMiniHistory()
     win.modeMineBtn = modeMineBtn
 
     local listHost = CreateFrame("Frame", nil, body, "BackdropTemplate")
+    listHost:SetHeight(176)
     listHost:SetPoint("TOPLEFT", modeRecentBtn, "BOTTOMLEFT", 0, -4)
     listHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", -6, 30)
     NNL.Theme.Apply(listHost, "section")
@@ -753,7 +808,7 @@ local function EnsureMiniHistory()
             if fs.SetWordWrap then fs:SetWordWrap(false) end
 
             local isSel = Ui.selectedHistoryRow == row or (row.guid and tonumber(row.guid) > 0 and tonumber(row.guid) == tonumber(activeGuid))
-            local prefix = isSel and "|cffffd100• |r" or ""
+            local prefix = isSel and "|cffffd100* |r" or ""
             local guidTag = (row.guid and tonumber(row.guid) > 0) and string.format("|cff7fe39a[%s]|r", tostring(row.guid)) or "|cff66ccff[шаблон]|r"
             local entryTag = row.entry and string.format(" |cffaaaaaa#%s|r", tostring(row.entry)) or ""
             fs:SetText(string.format("%s%s %s%s", prefix, guidTag, tostring(row.name or "?"), entryTag))
@@ -799,6 +854,21 @@ local function EnsureMiniHistory()
     end)
     delActionBtn:SetPoint("LEFT", spawnActionBtn, "RIGHT", 4, 0)
 
+    FitMiniSections(win, {
+        {frame = toolbar, layout = function(section)
+            filterBox:SetWidth(math.max(100, section:GetWidth() - 188))
+            local y = MiniRow(section, {filterBox, loBtn, nearBtn, mineFetchBtn}, 6)
+            local tabWidth = math.floor((section:GetWidth() - 20) / 2)
+            modeRecentBtn:SetWidth(tabWidth); modeMineBtn:SetWidth(tabWidth)
+            return MiniRow(section, {modeRecentBtn, modeMineBtn}, y) + 2
+        end},
+        {frame = listHost, layout = function(section)
+            child:SetWidth(section:GetWidth() - 30)
+            if win.list.SetViewport then win.list:SetViewport(section:GetWidth() - 30, 168) end
+            return 176
+        end},
+    }, {selActionBtn, gotoActionBtn, spawnActionBtn, delActionBtn})
+
     MiniSuite.history = win
     RefreshHistoryView()
     return win
@@ -816,7 +886,7 @@ local function EnsureMiniToolbox()
         name = "NobleNextGobMiniToolbox",
         title = "Пульт маппера",
         icon = "Interface\\Icons\\garrison_building_workshop",
-        width = 286,
+        width = 304,
         height = 352,
         strata = "HIGH",
         point = "RIGHT",
@@ -838,7 +908,7 @@ local function EnsureMiniToolbox()
     local body = win:GetContent()
 
     -- Target Header Strip
-    local targetCard = NNL.Widgets.CreateSection(body, { height = 56, divider = false })
+    local targetCard = NNL.Widgets.CreateSection(body, { height = 88, divider = false })
     targetCard:SetPoint("TOPLEFT", body, "TOPLEFT", 6, -6)
     targetCard:SetPoint("TOPRIGHT", body, "TOPRIGHT", -6, -6)
     NNL.Theme.Apply(targetCard, "card")
@@ -847,15 +917,17 @@ local function EnsureMiniToolbox()
     tgtName:SetPoint("TOPLEFT", targetCard, "TOPLEFT", 8, -6)
     tgtName:SetPoint("TOPRIGHT", targetCard, "TOPRIGHT", -8, -6)
     tgtName:SetJustifyH("LEFT")
+    tgtName:SetHeight(14)
     if tgtName.SetWordWrap then tgtName:SetWordWrap(false) end
     tgtName:SetTextColor(1, 0.82, 0)
     table.insert(Ui.targetLabels, tgtName)
 
     local tgtSub = targetCard:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    tgtSub:SetPoint("TOPLEFT", tgtName, "BOTTOMLEFT", 0, -2)
-    tgtSub:SetPoint("TOPRIGHT", targetCard, "TOPRIGHT", -8, -20)
+    tgtSub:SetPoint("TOPLEFT", targetCard, "TOPLEFT", 8, -24)
+    tgtSub:SetPoint("TOPRIGHT", targetCard, "TOPRIGHT", -8, -24)
+    tgtSub:SetHeight(28)
     tgtSub:SetJustifyH("LEFT")
-    if tgtSub.SetWordWrap then tgtSub:SetWordWrap(false) end
+    if tgtSub.SetWordWrap then tgtSub:SetWordWrap(true) end
     table.insert(Ui.subTargetLabels, tgtSub)
 
     local nearTargetBtn = MakeGobBtn(targetCard, "Ближайший", 84, 18, "primary", TargetNearestGo, "Выбрать ближайший объект (.gobject target)")
@@ -876,12 +948,13 @@ local function EnsureMiniToolbox()
     moveSec:SetPoint("TOPRIGHT", targetCard, "BOTTOMRIGHT", 0, -6)
 
     local stepLbl = ns.CreateNGLabel(moveSec, "Шаг:")
+    stepLbl:SetSize(32, 20)
     stepLbl:SetPoint("TOPLEFT", moveSec, "TOPLEFT", 8, -10)
     local miniStepBox = ns.CreateNGEditBox(moveSec, "GobMover_MiniStep", 48, 20)
     miniStepBox:SetPoint("LEFT", stepLbl, "RIGHT", 4, 0)
     BindSyncedBox(Ui.stepBoxes, miniStepBox, stepValueText, SetStepText)
 
-    BuildPresetChips(moveSec, { "0.05", "0.25", "1", "5" }, 104, -10, 36, 18, function(v)
+    local stepChips = BuildPresetChips(moveSec, { "0.05", "0.25", "1", "5" }, 104, -10, 36, 20, function(v)
         SetStepText(v)
     end)
 
@@ -897,7 +970,9 @@ local function EnsureMiniToolbox()
     }
     local cellW, cellH, gap = 58, 26, 4
     local origX, origY = 8, -36
+    local dpadButtons = {}
     for r = 1, 3 do
+        dpadButtons[r] = {}
         for c = 1, 3 do
             local dir = dpadGrid[r][c]
             local x = origX + (c - 1) * (cellW + gap)
@@ -907,9 +982,11 @@ local function EnsureMiniToolbox()
                     (dir == "F" or dir == "B" or dir == "L" or dir == "R") and "primary" or nil,
                     function() TriggerNudge(dir, miniStepBox) end)
                 b:SetPoint("TOPLEFT", moveSec, "TOPLEFT", x, y)
+                dpadButtons[r][c] = b
             else
                 local centerBtn = MakeGobBtn(moveSec, "Цель", cellW, cellH, nil, TargetNearestGo, "Выбрать ближайший объект (.gobject target)")
                 centerBtn:SetPoint("TOPLEFT", moveSec, "TOPLEFT", x, y)
+                dpadButtons[r][c] = centerBtn
             end
         end
     end
@@ -930,12 +1007,13 @@ local function EnsureMiniToolbox()
     rotSec:SetPoint("TOPRIGHT", moveSec, "BOTTOMRIGHT", 0, -6)
 
     local rotLbl = ns.CreateNGLabel(rotSec, "Угол:")
+    rotLbl:SetSize(36, 20)
     rotLbl:SetPoint("TOPLEFT", rotSec, "TOPLEFT", 8, -10)
     local miniRotBox = ns.CreateNGEditBox(rotSec, "GobMover_MiniRotStep", 44, 20)
     miniRotBox:SetPoint("LEFT", rotLbl, "RIGHT", 4, 0)
     BindSyncedBox(Ui.rotBoxes, miniRotBox, rotValueText, SetRotText)
 
-    BuildPresetChips(rotSec, { { "5°", "5" }, { "15°", "15" }, { "45°", "45" }, { "90°", "90" } }, 100, -10, 36, 18, function(v)
+    local rotChips = BuildPresetChips(rotSec, { { "5°", "5" }, { "15°", "15" }, { "45°", "45" }, { "90°", "90" } }, 100, -10, 36, 20, function(v)
         SetRotText(v)
     end)
 
@@ -986,6 +1064,39 @@ local function EnsureMiniToolbox()
         end
     end, "Открыть управление группами объектов (GobGroup)")
     openGrpBtn:SetPoint("LEFT", openHistBtn, "RIGHT", 4, 0)
+
+    FitMiniSections(win, {
+        {frame = targetCard, layout = function(section)
+            return MiniRow(section, {nearTargetBtn, pickBtn, modeToggleBtn}, 60, 6)
+        end},
+        {frame = moveSec, layout = function(section)
+            local controls = {stepLbl, miniStepBox}
+            for _, chip in ipairs(stepChips) do controls[#controls + 1] = chip end
+            local y = MiniRow(section, controls, 10)
+            local column = math.min(64, math.floor((section:GetWidth() - 28) / 4))
+            for r, row in ipairs(dpadButtons) do
+                for c, button in ipairs(row) do
+                    button:SetSize(column, cellH)
+                    button:ClearAllPoints()
+                    button:SetPoint("TOPLEFT", section, "TOPLEFT", 8 + (c - 1) * (column + gap), -y - (r - 1) * (cellH + gap))
+                end
+            end
+            local verticalHeight = (3 * cellH + 2 * gap - gap) / 2
+            upBtn:SetSize(column, verticalHeight)
+            downBtn:SetSize(column, verticalHeight)
+            upBtn:ClearAllPoints(); downBtn:ClearAllPoints()
+            upBtn:SetPoint("TOPLEFT", section, "TOPLEFT", 8 + 3 * (column + gap), -y)
+            downBtn:SetPoint("TOPLEFT", upBtn, "BOTTOMLEFT", 0, -gap)
+            return y + 3 * cellH + 2 * gap + 8
+        end},
+        {frame = rotSec, layout = function(section)
+            local controls = {rotLbl, miniRotBox}
+            for _, chip in ipairs(rotChips) do controls[#controls + 1] = chip end
+            local y = MiniRow(section, controls, 10)
+            y = MiniRow(section, {cwBtn, ccwBtn, rstRotBtn}, y)
+            return MiniRow(section, {pUp, pDn, rL, rR}, y) + 2
+        end},
+    }, {openInspBtn, openHistBtn, openGrpBtn})
 
     MiniSuite.toolbox = win
     SetEditMode(editMode)
@@ -1395,7 +1506,7 @@ local function InitGobMoverModule(parent)
     SetEditMode("object")
 
     -- -----------------------------------------------------------------------
-    -- Tab: Personal objects (AIO GetMineList → VirtualList)
+    -- Tab: Personal objects (AIO GetMineList -> VirtualList)
     -- -----------------------------------------------------------------------
     local Mine = CreateTabFrame("mine", true)
     local mineShowAllPhases = false

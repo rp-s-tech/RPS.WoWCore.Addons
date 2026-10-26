@@ -1,0 +1,19 @@
+{
+  "packages": ["NobleNext", "NobleNextLib", "NobleNextDM", "NobleNextGM"],
+  "extensions": [".lua", ".xml", ".toc"],
+  "excluded_directories": ["LibStub"],
+  "allowed_ranges": [[32, 126], [1040, 1103]],
+  "allowed_codepoints": [9, 10, 13, 1025, 1105, 171, 187, 176, 8211, 8212, 8230],
+  "replacements": {
+    "U+2212": "-",
+    "U+2190": "<-",
+    "U+2192": "->",
+    "U+2264": "<=",
+    "U+2265": ">=",
+    "U+2022": "*",
+    "U+25A0": "[] or a texture",
+    "U+25CF": "[x] or a texture",
+    "U+2713": "[x] or a texture",
+    "U+2714": "[x] or a texture"
+  }
+}

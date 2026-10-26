@@ -257,6 +257,7 @@ function Window.CreateMini(options)
     options = options or {}
     local width = options.width or 300
     local height = options.height or 380
+    local bodyTop, bodyBottom = 31, 5
 
     local frame = CreateFrame("Frame", options.name, UIParent, "BackdropTemplate")
     frame:SetSize(width, height)
@@ -303,21 +304,21 @@ function Window.CreateMini(options)
     titleFS:SetTextColor(g.r, g.g, g.b)
     titleFS:SetJustifyH("LEFT")
     if titleFS.SetWordWrap then titleFS:SetWordWrap(false) end
-    titleFS:SetPoint("TOPLEFT", frame, "TOPLEFT", options.icon and 28 or 10, -8)
+    titleFS:SetPoint("TOPLEFT", frame, "TOPLEFT", options.icon and 28 or 10, -7)
 
     local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     closeBtn:SetSize(22, 22)
     closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -3, -3)
 
     local minimizeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    minimizeBtn:SetSize(20, 18)
+    minimizeBtn:SetSize(20, 20)
     minimizeBtn:SetPoint("RIGHT", closeBtn, "LEFT", -2, 0)
-    minimizeBtn:SetText("_")
+    minimizeBtn:SetText("-")
 
     local headerBtn
     if options.headerButtonText and type(options.onHeaderButton) == "function" then
         headerBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-        headerBtn:SetSize(options.headerButtonWidth or 62, 18)
+        headerBtn:SetSize(options.headerButtonWidth or 62, 20)
         headerBtn:SetPoint("RIGHT", minimizeBtn, "LEFT", -3, 0)
         headerBtn:SetText(options.headerButtonText)
         headerBtn:SetScript("OnClick", options.onHeaderButton)
@@ -338,8 +339,8 @@ function Window.CreateMini(options)
     end
 
     local body = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    body:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -31)
-    body:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5)
+    body:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -bodyTop)
+    body:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, bodyBottom)
     Theme.Apply(body, "surface")
 
     local mini = {
@@ -411,7 +412,7 @@ function Window.CreateMini(options)
             self.minimized = false
             frame:SetHeight(self.expandedHeight or height)
             body:Show()
-            minimizeBtn:SetText("_")
+            minimizeBtn:SetText("-")
         end
         if left and top and UIParent and UIParent.GetLeft and UIParent.GetTop then
             local pLeft = UIParent:GetLeft() or 0
@@ -423,6 +424,14 @@ function Window.CreateMini(options)
 
     function mini:IsMinimized()
         return self.minimized == true
+    end
+
+    -- Fit flowing tool palettes without reopening a minimized window.
+    function mini:SetContentHeight(contentHeight)
+        self.expandedHeight = math.max(64, contentHeight + bodyTop + bodyBottom)
+        if not self.minimized and frame:GetHeight() ~= self.expandedHeight then
+            frame:SetHeight(self.expandedHeight)
+        end
     end
 
     minimizeBtn:SetScript("OnClick", function()
@@ -477,7 +486,8 @@ function Window.CreateMini(options)
         else
             local right = target.GetRight and target:GetRight()
             local screenW = UIParent and UIParent.GetWidth and UIParent:GetWidth()
-            if right and screenW and (right + width + 16 > screenW) then
+            local currentWidth = frame:GetWidth()
+            if right and screenW and (right + currentWidth + math.abs(offsetX) > screenW) then
                 frame:SetPoint("TOPRIGHT", target, "TOPLEFT", -math.abs(offsetX), offsetY)
             else
                 frame:SetPoint("TOPLEFT", target, "TOPRIGHT", math.abs(offsetX), offsetY)

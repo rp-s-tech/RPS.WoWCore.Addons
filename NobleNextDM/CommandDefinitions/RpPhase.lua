@@ -93,7 +93,7 @@ ns.CommandDefinitions.RegisterMany({
     {
         path = { "rps", "phase", "spawn", "info" },
         syntax = ".rps phase spawn info <creature|gameobject> <spawn-id> [--all-phases]",
-        description = "Показать mapping spawn → RP phase.",
+        description = "Показать mapping spawn -> RP phase.",
         args = {
             { name = "spawnType", type = "choice", required = true, choices = { "creature", "gameobject" } },
             spawnId, { name = "all", type = "literal", required = false, choices = { "--all-phases" } },
