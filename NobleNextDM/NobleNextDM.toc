@@ -16,3 +16,4 @@ GM/Pet/Init.lua
 GM/Phase/Panel.lua
 GM/Phase/Init.lua
 GM/Battle/Init.lua
+GM/Battle/RPS.lua

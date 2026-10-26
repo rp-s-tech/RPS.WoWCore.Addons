@@ -81,7 +81,11 @@ local function Unavailable(row, reason)
 end
 
 function Sheet:Refresh()
-    if not self.scroll or not self.scroll:IsVisible() then return end
+    if not self.scroll or not self.panel:IsVisible() then return end
+    if ns.RPSClient and ns.RPSClient.RenderSheet and ns.RPSClient.RenderSheet(self.panel) then
+        self.scroll:Hide()
+        return
+    end
     for _, row in ipairs(self.rows) do
         local definition = row.definition
         row.tooltip, row.tooltip2, row.tooltip3, row.tooltip4 = nil, nil, nil, nil
@@ -208,9 +212,15 @@ local function CreateStats()
     local elapsed = 0
     panel:SetScript("OnUpdate", function(_, delta)
         elapsed = elapsed + delta
-        if elapsed >= 0.25 then elapsed = 0; Sheet:Refresh() end
+        if elapsed >= 0.25 then
+            elapsed = 0
+            Sheet:Refresh()
+        end
     end)
-    panel:SetScript("OnShow", function() Sheet:Refresh() end)
+    panel:SetScript("OnShow", function()
+        Sheet:Refresh()
+        if ns.RPSClient then ns.RPSClient.Send("RequestSync") end
+    end)
 end
 
 local function SkinTabs()
