@@ -28,3 +28,7 @@ Modules/CharacterFrame/Textures.lua
 Modules/CharacterFrame/RPS.lua
 Modules/CharacterFrame/Init.lua
 Modules/CombatPrompt/Init.lua
+Modules/CharacterCreation/State.lua
+Modules/CharacterCreation/Wizard.lua
+Modules/Progression/State.lua
+Modules/Progression/Frame.lua

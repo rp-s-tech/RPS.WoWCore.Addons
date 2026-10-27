@@ -59,6 +59,11 @@ local ERROR_LABELS_RU = {
     invalid_dice               = "Некорректная формула кости.",
     invalid_field              = "Некорректное числовое значение поля.",
     invalid_stats              = "Некорректные значения характеристик.",
+    no_incoming_attack         = "Нет входящей атаки.",
+    attack_no_target           = "Для атаки выберите цель.",
+    attack_pending             = "Предыдущая атака по этой цели ещё ждёт ответа.",
+    invalid_action             = "Некорректное действие.",
+    invalid_reaction           = "Некорректная защитная реакция.",
 }
 
 function R.GetLocalizedStatName(statKey)
@@ -84,17 +89,68 @@ function R.FormatResource(current, maximum, label)
     return text
 end
 
+-- Wire GUID contract: the server's tostring(ObjectGuid) and the client's UnitGUID share
+-- one text format; this block must stay byte-identical to NobleNextLua/Modules/RPS_Combat/Init.lua.
+local WIRE_GUID_KINDS = {
+    player = "Player", creature = "Creature", pet = "Pet", vehicle = "Vehicle", gameobject = "GameObject",
+}
+local function NormalizeWireGuid(value)
+    if type(value) ~= "string" then
+        if type(value) ~= "userdata" then return nil end
+        value = tostring(value)
+    end
+    value = value:match("^%s*(.-)%s*$")
+    if value == "" or #value > 128 then return nil end
+    local kind, rest = value:match("^(%a+)%-([%w%-]+)$")
+    if not kind or rest:find("%-%-") or rest:find("^%-") or rest:sub(-1) == "-" then return nil end
+    return (WIRE_GUID_KINDS[kind:lower()] or kind) .. "-" .. rest:upper()
+end
+R.NormalizeGuid = NormalizeWireGuid
+
+-- Negative answers expire so a unit that gets a profile or comes back into context is re-read.
+R.NEGATIVE_TTL = { none = 60, unknown = 15 }
+R.DISPLAY_STATE_TEXT = {
+    loading = "…",
+    error   = "ошибка",
+    none    = "Нет профиля",
+    unknown = "Данные недоступны",
+    unavailable = "Недоступно",
+}
+-- Resource caption per non-ready state; native numbers are never shown for them.
+R.RESOURCE_STATE_TEXT = {
+    loading = "…",
+    unknown = "…",
+    none    = "—",
+    error   = "ошибка",
+}
+R.selfState = "loading"
+R.SYNC_TIMEOUT = 15
+
+-- Native bars return only when this module is down: disabled
+-- (system_unavailable), no AIO, or the server never answered after RequestSync.
+function R.IsSystemUnavailable()
+    if R.available then return false end
+    return R.selfState == "error" or R.serverSilent == true or not AIO or not AIO.Handle
+end
+
 local function SafeGuid(unit)
     if not UnitGUID then return nil end
     local guid = UnitGUID(unit)
     if not guid or (issecretvalue and issecretvalue(guid)) then return nil end
-    return guid
+    return NormalizeWireGuid(guid)
+end
+R.SafeGuid = SafeGuid
+
+local function PayloadGuid(payload)
+    return NormalizeWireGuid(payload.guid) or NormalizeWireGuid(payload.targetGuid)
 end
 
 local function MatchUnitGuid(unitGuid, payload)
+    unitGuid = NormalizeWireGuid(unitGuid)
     if not unitGuid or type(payload) ~= "table" then return false end
-    if payload.guid and payload.guid == unitGuid then return true end
-    if payload.targetGuid and payload.targetGuid == unitGuid then return true end
+    local payloadGuid = PayloadGuid(payload)
+    if payloadGuid then return payloadGuid == unitGuid end
+    -- Legacy payloads carry only the low counter; never used when a full GUID is present.
     local kind, hex = unitGuid:match("^(%a+)%-.*%-(%x+)$")
     local counter = hex and tonumber(hex, 16)
     if counter ~= nil and counter <= 9007199254740991 and payload.guidLow ~= nil then
@@ -107,23 +163,54 @@ function R.IsCurrentTarget(payload)
     return MatchUnitGuid(SafeGuid("target"), payload)
 end
 
+local function LowAlias(payload)
+    if payload.guidLow == nil then return nil end
+    return (payload.isPlayer and "p:" or "n:") .. tostring(payload.guidLow)
+end
+
 local function StoreUnitPayload(payload, explicitGuid)
     if type(payload) ~= "table" then return end
-    local g = explicitGuid or payload.guid or payload.targetGuid
-    if type(g) == "string" and g ~= "" then
-        payload.guid = payload.guid or g
-        payload.targetGuid = payload.targetGuid or g
+    local g = NormalizeWireGuid(explicitGuid) or PayloadGuid(payload)
+    if g then
+        payload.guid = g
+        payload.targetGuid = NormalizeWireGuid(payload.targetGuid) or g
+        payload.state = payload.state or (payload.inSystem and "ready" or "none")
+        if payload.inSystem then
+            payload.expiresAt = nil
+        else
+            payload.expiresAt = GetTime() + (R.NEGATIVE_TTL[payload.state] or R.NEGATIVE_TTL.unknown)
+        end
         R.unitsByGuid[g] = payload
+        return
     end
-    if payload.guidLow ~= nil then
-        local prefix = payload.isPlayer and "p:" or "n:"
-        R.unitsByGuid[prefix .. tostring(payload.guidLow)] = payload
-    end
+    local alias = LowAlias(payload)
+    if alias then R.unitsByGuid[alias] = payload end
 end
+
+-- Explicit negative entry: the server could not resolve the GUID or it has no RP profile.
+local function CacheNegative(guid, state, extra)
+    guid = NormalizeWireGuid(guid)
+    if not guid then return end
+    local entry = { guid = guid, targetGuid = guid, inSystem = false, state = state or "unknown" }
+    if type(extra) == "table" then
+        entry.name, entry.isPlayer, entry.canEdit = extra.name, extra.isPlayer, extra.canEdit
+        entry.guidLow, entry.reason = extra.guidLow, extra.reason
+    end
+    StoreUnitPayload(entry, guid)
+    return entry
+end
+R.CacheNegative = CacheNegative
 
 function R.LookupUnitByGuid(guid)
     if not guid or (issecretvalue and issecretvalue(guid)) then return nil end
-    if R.unitsByGuid[guid] then return R.unitsByGuid[guid] end
+    guid = NormalizeWireGuid(guid)
+    if not guid then return nil end
+    local entry = R.unitsByGuid[guid]
+    if entry and entry.expiresAt and GetTime() >= entry.expiresAt then
+        R.unitsByGuid[guid] = nil
+        return nil
+    end
+    if entry then return entry end
     local kind, hex = guid:match("^(%a+)%-.*%-(%x+)$")
     local counter = hex and tonumber(hex, 16)
     if counter ~= nil and counter <= 9007199254740991 then
@@ -132,6 +219,57 @@ function R.LookupUnitByGuid(guid)
         if byLow then return byLow end
     end
     return nil
+end
+
+local MAX_NAMEPLATES = 40
+
+local function VisibleTokens()
+    local tokens = { "player", "target", "focus", "mouseover", "targettarget" }
+    if IsInRaid and IsInRaid() and GetNumGroupMembers then
+        for i = 1, GetNumGroupMembers() do tokens[#tokens + 1] = "raid" .. i end
+    elseif IsInGroup and IsInGroup() and GetNumSubgroupMembers then
+        for i = 1, GetNumSubgroupMembers() do tokens[#tokens + 1] = "party" .. i end
+    end
+    for i = 1, MAX_NAMEPLATES do tokens[#tokens + 1] = "nameplate" .. i end
+    return tokens
+end
+
+function R.IsGuidVisible(guid, exceptToken)
+    guid = NormalizeWireGuid(guid)
+    if not guid then return false end
+    for _, token in ipairs(VisibleTokens()) do
+        if token ~= exceptToken and SafeGuid(token) == guid then return true end
+    end
+    return false
+end
+
+-- Drops the cached snapshot of a unit that left every visible surface.
+function R.InvalidateGuid(guid, exceptToken)
+    guid = NormalizeWireGuid(guid)
+    if not guid or R.IsGuidVisible(guid, exceptToken) then return false end
+    local entry = R.unitsByGuid[guid]
+    R.unitsByGuid[guid] = nil
+    if entry then
+        local alias = LowAlias(entry)
+        if alias and R.unitsByGuid[alias] == entry then R.unitsByGuid[alias] = nil end
+    end
+    if R.focus and MatchUnitGuid(guid, R.focus) and not SafeGuid("focus") then R.focus = nil end
+    return entry ~= nil
+end
+
+function R.PruneUnitCache()
+    local visible = {}
+    for _, token in ipairs(VisibleTokens()) do
+        local g = SafeGuid(token)
+        if g then visible[g] = true end
+    end
+    local now = GetTime()
+    for key, entry in pairs(R.unitsByGuid) do
+        local alias = key:find("^[pn]:") ~= nil
+        if (not alias and not visible[key]) or (entry.expiresAt and now >= entry.expiresAt) then
+            R.unitsByGuid[key] = nil
+        end
+    end
 end
 
 function R.GetUnitData(unitToken)
@@ -180,6 +318,32 @@ function R.GetUnitData(unitToken)
     return nil
 end
 
+function R.GetSelfDisplayState()
+    if R.profile and R.available then return "ready" end
+    if R.selfState == "error" or R.profile then return "error" end
+    if R.selfState == "none" then return "none" end
+    return "loading"
+end
+
+-- "ready" | "loading" | "none" (no RP profile) | "unknown" (server could not resolve) | "error".
+function R.GetUnitDisplayState(unitToken)
+    if not unitToken then return "unknown" end
+    local guid = SafeGuid(unitToken)
+    local playerGuid = SafeGuid("player")
+    if unitToken == "player" or (guid and playerGuid and guid == playerGuid) then
+        local state = R.GetSelfDisplayState()
+        return state, state == "ready" and R.profile or nil
+    end
+    if R.selfState == "error" and not R.available then return "error" end
+    local data = R.GetUnitData(unitToken)
+    if data then
+        if data.inSystem then return "ready", data end
+        return (data.state == "unknown") and "unknown" or "none", data
+    end
+    if unitToken == "target" and guid and R.targetNoneGuid == guid then return "unknown" end
+    return "loading"
+end
+
 local sequence = 0
 function R.RequestId()
     sequence = sequence + 1
@@ -194,7 +358,12 @@ function R.Bind()
     if not AIO or not AIO.AddHandlers then return false end
     local H = AIO.AddHandlers("RPS_Combat", {})
     bound = true
+    R.handlers = H -- AIO allows one table per channel; Modules/CharacterCreation adds its handlers here.
+    local function Answered()
+        R.serverAnswered, R.serverSilent = true, nil
+    end
     function H.SyncProfile(_, payload)
+        Answered()
         if type(payload) ~= "table" or payload.protocol ~= 1 or type(payload.registry) ~= "table"
             or type(payload.profile) ~= "table" or type(payload.profile.revision) ~= "number" then return end
         local parts = {}
@@ -206,6 +375,7 @@ function R.Bind()
         local fingerprint = table.concat(parts, "\n")
         if fingerprint ~= R.fingerprint then R.generation = R.generation + 1; R.fingerprint = fingerprint end
         R.registry, R.profile, R.available = payload.registry, payload.profile, true
+        R.selfState = "ready"
         if type(payload.pendingAttackIds) == "table" then
             local active = {}; for _, id in ipairs(payload.pendingAttackIds) do active[id] = true end
             for i = #R.promptOrder, 1, -1 do
@@ -218,14 +388,20 @@ function R.Bind()
         if R.RefreshAllUnitFrames then R.RefreshAllUnitFrames() end
     end
     function H.SyncTarget(_, payload)
+        Answered()
         if type(payload) ~= "table" then return end
-        if payload.guidLow and not R.IsCurrentTarget(payload) then return end
         local targetGuid = SafeGuid("target")
-        local hasIdentity = (payload.targetGuid and payload.targetGuid ~= "")
-            or (payload.guid and payload.guid ~= "")
-            or payload.guidLow ~= nil
+        local payloadGuid = PayloadGuid(payload)
+        if payloadGuid then
+            -- A late answer for the previous selection is cached under its own GUID only.
+            if targetGuid and payloadGuid ~= targetGuid then StoreUnitPayload(payload); return end
+        elseif payload.guidLow and not R.IsCurrentTarget(payload) then
+            return
+        end
+        local hasIdentity = payloadGuid ~= nil or payload.guidLow ~= nil
+        R.targetNoneGuid = nil
         if hasIdentity or payload.inSystem then
-            StoreUnitPayload(payload, targetGuid)
+            StoreUnitPayload(payload, payloadGuid or targetGuid)
             R.target = payload
             R.remembered = payload
             Emit("RPS_REMEMBERED_CHANGED", payload)
@@ -236,11 +412,13 @@ function R.Bind()
             end
         else
             R.target = nil
+            R.targetNoneGuid = targetGuid
         end
         Emit("RPS_TARGET_CHANGED", R.target)
         if R.RefreshAllUnitFrames then R.RefreshAllUnitFrames() end
     end
     function H.SyncUnit(_, payload)
+        Answered()
         if type(payload) ~= "table" then return end
         StoreUnitPayload(payload)
         local targetGuid = SafeGuid("target")
@@ -267,10 +445,16 @@ function R.Bind()
         if R.RefreshAllUnitFrames then R.RefreshAllUnitFrames() end
     end
     function H.SyncUnitBatch(_, batch)
+        Answered()
         if type(batch) ~= "table" then return end
         for guid, data in pairs(batch) do
             if type(data) == "table" then
-                StoreUnitPayload(data, type(guid) == "string" and guid or nil)
+                local key = type(guid) == "string" and guid or data.guid
+                if data.state == "unknown" then
+                    CacheNegative(key, "unknown", data)
+                else
+                    StoreUnitPayload(data, key)
+                end
             end
         end
         local targetGuid = SafeGuid("target")
@@ -278,9 +462,11 @@ function R.Bind()
             local found = R.LookupUnitByGuid(targetGuid)
             if found then
                 R.target = found
-                R.remembered = found
                 Emit("RPS_TARGET_CHANGED", R.target)
-                Emit("RPS_REMEMBERED_CHANGED", R.remembered)
+                if found.state ~= "unknown" then
+                    R.remembered = found
+                    Emit("RPS_REMEMBERED_CHANGED", R.remembered)
+                end
             end
         end
         local focusGuid = SafeGuid("focus")
@@ -309,8 +495,14 @@ function R.Bind()
         Emit("RPS_REACTIONS_CHANGED")
     end
     function H.Error(_, payload)
+        Answered()
         if type(payload) ~= "table" then return end
-        if payload.code == "system_unavailable" then R.available = false end
+        if payload.code == "system_unavailable" then
+            R.available = false
+            R.selfState = "error"
+        elseif payload.code == "profile_unavailable" and not R.profile and payload.requestId == nil then
+            R.selfState = "none"
+        end
         if ns.PrintError then
             local label = R.FormatSystemError(payload.code)
             ns.PrintError(label .. (type(payload.reason) == "string" and (" (" .. payload.reason .. ")") or ""))
@@ -325,7 +517,28 @@ function R.Bind()
             local statName = R.GetLocalizedStatName(result.statKey)
             ns.Print("Бросок «" .. tostring(statName) .. "»: " .. tostring(result.total)
                 .. (result.damage and (", урон: " .. result.damage) or ""))
+        elseif result and result.kind == "attack" and ns.Print then
+            ns.Print("Атака: " .. tostring(result.total)
+                .. (result.attackId and ", ожидается защита цели" or result.hit and ", попадание" or ", промах")
+                .. (result.damage and (", урон: " .. result.damage) or ""))
+        elseif result and result.kind == "reaction" and type(result.outcome) == "table" and ns.Print then
+            local o = result.outcome
+            local damage = type(o.damage) == "table" and o.damage.damage or 0
+            ns.Print((R.REACTION_LABELS[o.choice] or tostring(o.choice)) .. (o.timedOut and " (время вышло)" or "")
+                .. (o.avoided and ": атака избегнута" or (": получено урона " .. tostring(damage))))
         end
+    end
+    -- Server asks which open attack a native Избегание/Блок should answer.
+    function H.ChooseDefenseAttack(_, payload)
+        if type(payload) ~= "table" or type(payload.actionKey) ~= "string" or type(payload.attackIds) ~= "table" then return end
+        R.defenseChoice = payload
+        if ns.Print then ns.Print("Несколько входящих атак: выберите атаку в окне защиты.") end
+        Emit("RPS_DEFENSE_CHOICE", payload)
+    end
+    function H.AttackResolved(_, payload)
+        if type(payload) ~= "table" or not ns.Print then return end
+        ns.Print("Цель ответила на атаку: " .. (R.REACTION_LABELS[payload.choice] or tostring(payload.choice))
+            .. (payload.avoided and ", атака избегнута" or (", урон: " .. tostring(payload.damage or 0))))
     end
     return true
 end
@@ -340,7 +553,6 @@ function R.Send(method, ...)
 end
 
 local MAX_UNITS_PER_REQUEST = 45
-local MAX_NAMEPLATES = 40
 
 function R.RequestVisibleUnitsSync()
     if not AIO or not AIO.Handle then return false end
@@ -405,7 +617,9 @@ FlushUnitQueue = function(retry)
 end
 
 function R.QueueUnitSync(guid)
-    if type(guid) ~= "string" or guid == "" or R.LookupUnitByGuid(guid) then return end
+    if type(guid) ~= "string" or (issecretvalue and issecretvalue(guid)) then return end
+    guid = NormalizeWireGuid(guid)
+    if not guid or R.LookupUnitByGuid(guid) then return end
     queuedGuids[guid] = true
     ScheduleUnitQueue(0.3, false)
 end
@@ -415,25 +629,54 @@ function R.Roll(key, fate)
     return R.Send("RollStat", key, fate == true, R.RequestId(), R.profile.revision)
 end
 
+R.REACTION_LABELS = { AVOID = "Избегание", BLOCK = "Блок", TAKE = "Принять атаку" }
+
+-- Same server route as the native action spells: PerformAction(actionKey, args, requestId).
+-- Returns the requestId so a window can wait for its own receipt.
+function R.PerformAction(actionKey, args)
+    local requestId = R.RequestId()
+    args = args or {}
+    if actionKey == "attack" then
+        if not R.available or not R.profile then return nil end
+        args.revision = R.profile.revision
+    end
+    if R.Send("PerformAction", actionKey, args, requestId) then return requestId end
+    return nil
+end
+
+function R.RequestSelfSync()
+    R.Send("RequestSync")
+    if not (C_Timer and C_Timer.After) then return end
+    C_Timer.After(R.SYNC_TIMEOUT, function()
+        if R.serverAnswered then return end
+        R.serverSilent = true
+        if R.RefreshAllUnitFrames then R.RefreshAllUnitFrames() end
+    end)
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_TARGET_CHANGED")
 events:RegisterEvent("ADDON_LOADED")
 local targetGeneration = 0
+local lastTargetGuid
 events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_TARGET_CHANGED" then
-        R.target = nil; Emit("RPS_TARGET_CHANGED", nil)
+        R.target = nil; R.targetNoneGuid = nil
+        if lastTargetGuid then R.InvalidateGuid(lastTargetGuid) end
+        lastTargetGuid = SafeGuid("target")
+        Emit("RPS_TARGET_CHANGED", nil)
         targetGeneration = targetGeneration + 1
         local generation = targetGeneration
         R.Send("RequestTargetSync")
         -- Retry only the final selection if the server's read throttle dropped a rapid switch.
         C_Timer.After(0.3, function()
-            if generation == targetGeneration and (not R.target or
+            if generation == targetGeneration and ((not R.target and not R.targetNoneGuid) or
                 (R.target.inSystem and R.TargetResourceProfile and not R.TargetResourceProfile())) then
                 R.Send("RequestTargetSync")
             end
         end)
-    elseif event == "PLAYER_LOGIN" then R.Send("RequestSync")
-    elseif not bound and R.Bind() then R.Send("RequestSync") end
+    elseif event == "PLAYER_LOGIN" then R.RequestSelfSync()
+    elseif not bound and R.Bind() then R.RequestSelfSync() end
 end)
 R.Bind()

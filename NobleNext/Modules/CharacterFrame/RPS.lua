@@ -3,14 +3,21 @@ local _, ns = ...
 local R = ns.RPSClient
 local archetypes = { defender = "Защитник", fighter = "Боец", healer = "Целитель", caster = "Заклинатель" }
 local races = {
-    human = "Человек",
-    troll = "Тролль",
     orc = "Орк",
-    forsaken = "Отрекшийся",
+    troll = "Тролль",
     tauren = "Таурен",
-    goblin = "Гоблин",
+    forsaken = "Отрекшийся",
+    blood_elf = "Эльф крови",
     sin_dorei = "Син'дорай",
     ogre = "Огр",
+    goblin = "Гоблин",
+    pandaren = "Пандарен",
+    human = "Человек",
+    high_elf = "Высший эльф",
+    dwarf = "Дворф",
+    night_elf = "Ночной эльф",
+    draenei = "Дреней",
+    gnome = "Гном",
 }
 local sections = {
     { "Общее", { general = true } },
@@ -18,11 +25,46 @@ local sections = {
     { "Оружие", { weapon = true } },
 }
 
+local SELF_STATE_TEXT = {
+    loading = "Ожидание данных сервера…",
+    none    = "Нет профиля.",
+    error   = "Данные недоступны: показаны последние подтверждённые значения.",
+}
+
+-- nil when the profile is confirmed; otherwise the user-facing reason.
+function R.SelfStateText()
+    return SELF_STATE_TEXT[R.GetSelfDisplayState()]
+end
+
+-- The technical human/fighter of an unconfirmed profile is not shown as the player's choice.
+local function ChoiceConfirmed()
+    local C = ns.CharacterCreation
+    return not C or C.ChoiceConfirmed()
+end
+
+local CREATION_LABELS = {
+    none        = "RP-персонаж не настроен",
+    legacy      = "Старый профиль: подтвердите выбор",
+    reconfigure = "Разрешена перенастройка",
+}
+
 local function Value(def, p)
-    if def.key == "rp_race" then return races[p.raceId] or (UnitRace and UnitRace("player")) or p.raceId or "Не указана" end
-    if def.key == "rp_archetype" then return archetypes[p.archetype] or p.archetype or "Не указан" end
-    if def.key == "health" then return R.FormatResource(p.curHealth, p.maxHealth) end
-    if def.key == "energy" then return R.FormatResource(p.curEnergy, p.maxEnergy) end
+    if def.key == "rp_race" then
+        if not ChoiceConfirmed() then return "Раса не выбрана" end
+        return races[p.raceId] or p.raceId or "Не указана"
+    end
+    if def.key == "rp_archetype" then
+        if not ChoiceConfirmed() then return "Архетип не выбран" end
+        return archetypes[p.archetype] or p.archetype or "Не указан"
+    end
+    if def.key == "health" or def.key == "energy" then
+        local cur, max = p.curHealth, p.maxHealth
+        if def.key == "energy" then cur, max = p.curEnergy, p.maxEnergy end
+        if cur == nil or max == nil then return R.DISPLAY_STATE_TEXT.loading end
+        local text = R.FormatResource(cur, max)
+        if R.GetSelfDisplayState() == "error" then text = "|cff999999" .. text .. "|r" end
+        return text
+    end
     if def.key == "weapon_damage" then return p.weaponDice end
     if def.key == "shield_block" then return p.blockDice end
     if def.key == "armor" or def.key == "speed" then return tostring(p[def.key] or 0) end
@@ -41,6 +83,7 @@ local levelHooked = false
 function R.UpdateCharacterHeaderLevelText()
     if not CharacterLevelText or not R.profile then return end
     local arch = archetypes[R.profile.archetype] or R.profile.archetype or "Боец"
+    if not ChoiceConfirmed() then arch = "Архетип не выбран," end
     local lvl = tonumber(R.profile.level) or 1
     CharacterLevelText:SetText(string.format("|cffffd100%s|r %d-го уровня", arch, lvl))
     if not levelHooked and PaperDollFrame_SetLevel and hooksecurefunc then
@@ -51,8 +94,52 @@ function R.UpdateCharacterHeaderLevelText()
     end
 end
 
+-- "Настроить RP-персонажа" under the sheet while the server reports none/legacy/reconfigure;
+-- "Сбросить расовые данные" while SyncProfile.creation.raceUpdateAvailable is true.
+local function UpdateCreationControls(parent, view)
+    local C = ns.CharacterCreation
+    local state = C and C.GetState()
+    local setup = CREATION_LABELS[state]
+    local raceUpdate = C and C.RaceUpdateAvailable and C.RaceUpdateAvailable() or false
+    local label = setup or (raceUpdate and "Доступно обновление расовых данных") or nil
+    local box = R.creationBox
+    if label and not box then
+        box = CreateFrame("Frame", nil, parent)
+        box:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 8, 6)
+        box:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -8, 6)
+        box:SetHeight(44)
+        box.Label = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        box.Label:SetPoint("TOP", box, "TOP", 0, 0)
+        box.Button = ns.CreateNGButton(box, "Настроить RP-персонажа", 180, 22)
+        box.Button:SetPoint("BOTTOM", box, "BOTTOM", 0, 0)
+        box.Button:SetScript("OnClick", function() ns.CharacterCreation.Open() end)
+        box.ResetButton = ns.CreateNGButton(box, "Сбросить расовые данные", 180, 22)
+        box.ResetButton:SetScript("OnClick", function() ns.CharacterCreation.ConfirmRaceReset() end)
+        R.creationBox = box
+    end
+    local both = setup ~= nil and raceUpdate
+    if box then
+        box.Label:SetText(label or "")
+        box:SetHeight(both and 68 or 44)
+        if setup then box.Button:Show() else box.Button:Hide() end
+        box.ResetButton:ClearAllPoints()
+        box.ResetButton:SetPoint("BOTTOM", box, "BOTTOM", 0, both and 24 or 0)
+        if raceUpdate then box.ResetButton:Show() else box.ResetButton:Hide() end
+        if label then box:Show() else box:Hide() end
+    end
+    local inset = both and 76 or label and 52 or 6
+    if view and view.bottomInset ~= inset then
+        view:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -25, inset)
+        view.bottomInset = inset
+    end
+end
+
 function R.RenderSheet(parent)
-    if not R.profile then return false end
+    if not R.profile then
+        if R.sheet then R.sheet:Hide() end
+        if R.creationBox then R.creationBox:Hide() end
+        return false
+    end
     R.UpdateCharacterHeaderLevelText()
     local view = R.sheet
     if not view then
@@ -79,6 +166,7 @@ function R.RenderSheet(parent)
         R.sheet = view
     end
     view:Show()
+    UpdateCreationControls(parent, view)
     local contentWidth = (view.content.GetWidth and view.content:GetWidth()) or 195
     if not contentWidth or contentWidth <= 0 then contentWidth = 195 end
     if view.generation ~= R.generation then
@@ -159,7 +247,12 @@ function R.RenderSheet(parent)
                                 GameTooltip:AddLine("ЛКМ: бросок. ПКМ: Судьба за 3 ОЭ.")
                                 GameTooltip:AddLine("Shift + перетаскивание: спелл на панель.")
                             end
-                            if not R.available then GameTooltip:AddLine("Нет подтверждения сервера.", 1, 0.3, 0.3) end
+                            local creation = self.def.identity and ns.CharacterCreation and ns.CharacterCreation.GetState()
+                            if creation then
+                                GameTooltip:AddLine("Настройка RP-персонажа: " .. (ns.CharacterCreation.STATE_TEXT[creation] or creation))
+                            end
+                            local stateText = R.SelfStateText()
+                            if stateText then GameTooltip:AddLine(stateText, 1, 0.3, 0.3) end
                             GameTooltip:Show()
                         end)
                         row:SetScript("OnLeave", GameTooltip_Hide)

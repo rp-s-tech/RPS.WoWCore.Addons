@@ -8,13 +8,9 @@ local hookedBars = {}
 local hookedFrames = {}
 local hookedClassBars = {}
 local customStatusFrames = {}
+local nativeHidden = {}
 
-local function SafeGuid(unit)
-    if not UnitGUID then return nil end
-    local guid = UnitGUID(unit)
-    if not guid or (issecretvalue and issecretvalue(guid)) then return nil end
-    return guid
-end
+local SafeGuid = R.SafeGuid
 
 local function UnitFrame(unit)
     if unit == "player" then return PlayerFrame end
@@ -81,8 +77,9 @@ function R.TargetResourceProfile()
     local selfProfile = SelfProfileFor("target")
     if selfProfile then return selfProfile end
     local p = R.target
-    if not p or not p.inSystem or not R.IsCurrentTarget(p) then return end
-    return p
+    if p and p.inSystem and R.IsCurrentTarget(p) then return p end
+    local state, data = R.GetUnitDisplayState("target")
+    if state == "ready" and data and data.inSystem then return data end
 end
 
 function R.GetBarOverlay(bar)
@@ -128,9 +125,12 @@ local function SetNativeBarVisualsAlpha(bar, alpha)
     end
     local parent = bar.GetParent and bar:GetParent() or nil
     for _, key in ipairs(NATIVE_TEXT_KEYS) do
-        local fs = bar[key] or (parent and parent[key])
+        local fs, parentFs = bar[key], parent and parent[key]
         if fs and fs.SetAlpha then
             fs:SetAlpha(alpha)
+        end
+        if parentFs and parentFs ~= fs and parentFs.SetAlpha then
+            parentFs:SetAlpha(alpha)
         end
     end
     for _, key in ipairs(NATIVE_SUBREGION_KEYS) do
@@ -140,6 +140,15 @@ local function SetNativeBarVisualsAlpha(bar, alpha)
         end
     end
 end
+
+local function HideNative(bar)
+    nativeHidden[bar] = true
+    SetNativeBarVisualsAlpha(bar, 0)
+end
+
+local NO_DATA_COLOR = { 0.5, 0.5, 0.5 }
+local HEALTH_COLOR = { 0, 1, 0 }
+local ENERGY_COLOR = { 0, 0.45, 1 }
 
 local BONUS_COLORS = {
     ["ОЗ"] = { 1.0, 0.82, 0.2 },
@@ -226,8 +235,7 @@ local function EnsureOverlay(bar, showText, fontObject, parent)
     if not hookedBars[bar] then
         hookedBars[bar] = true
         local function ReassertAlpha()
-            local state = barStates[bar]
-            if state and state.active then
+            if nativeHidden[bar] then
                 SetNativeBarVisualsAlpha(bar, 0)
             end
         end
@@ -250,7 +258,7 @@ local function Paint(bar)
     local overlay = EnsureOverlay(bar, state.showText)
     if not overlay then return end
 
-    SetNativeBarVisualsAlpha(bar, 0)
+    HideNative(bar)
     SetOverlayValues(overlay, state.current, state.maximum, state.color, BONUS_COLORS[state.label])
 
     if overlay.text then
@@ -258,22 +266,34 @@ local function Paint(bar)
             overlay.text:ClearAllPoints()
             overlay.text:SetPoint("CENTER", bar, "CENTER", state.textOffsetX or 0, 0)
         end
-        overlay.text:SetText(R.FormatResource(state.current, state.maximum, state.label))
+        if state.placeholder then
+            overlay.text:SetText(state.label .. ": " .. state.placeholder)
+        else
+            overlay.text:SetText(R.FormatResource(state.current, state.maximum, state.label))
+        end
         overlay.text:Show()
     end
     overlay:Show()
+end
+
+-- Fallback: only when this module is unavailable the overlay is
+-- hidden and the alpha of native regions is restored; native bar methods are never called.
+local function FallbackToNative(bar)
+    if not bar then return end
+    nativeHidden[bar] = nil
+    local overlay = barOverlays[bar]
+    if overlay then overlay:Hide() end
+    SetNativeBarVisualsAlpha(bar, 1)
 end
 
 local function RestoreBar(bar, unit, label)
     local state = barStates[bar]
     if not state or not state.active then return end
     state.active = false
-    local overlay = barOverlays[bar]
-    if overlay then overlay:Hide() end
-    SetNativeBarVisualsAlpha(bar, 1)
+    FallbackToNative(bar)
 end
 
-local function Update(bar, unit, current, maximum, color, label, vehicle, textOffsetX)
+local function Update(bar, unit, current, maximum, color, label, vehicle, textOffsetX, placeholder)
     if not bar then return end
     local state = barStates[bar]
     if not state then
@@ -290,7 +310,35 @@ local function Update(bar, unit, current, maximum, color, label, vehicle, textOf
     state.color = color
     state.label = label
     state.textOffsetX = textOffsetX or 0
+    state.placeholder = placeholder
     Paint(bar)
+end
+
+-- Overlay fill and caption for a state without values: none = full grey "—",
+-- loading/unknown = empty "…", error = empty "ошибка"; nil = native bar (module unavailable).
+local function NoDataView(displayState)
+    local text = R.RESOURCE_STATE_TEXT[displayState]
+    if not text then return nil end
+    if displayState == "none" then return text, 1, NO_DATA_COLOR end
+    return text, 0
+end
+
+-- tagged: target/focus add "(нет профиля)" to the health caption of a unit without a profile.
+local function ApplyDisplayState(health, energy, unit, displayState, p, vehicle, manaTextOffsetX, tagged)
+    if displayState == "ready" and p then
+        Update(health, unit, p.curHealth, p.maxHealth, HEALTH_COLOR, "ОЗ", vehicle, 0)
+        Update(energy, unit, p.curEnergy, p.maxEnergy, ENERGY_COLOR, "ОЭ", vehicle, manaTextOffsetX)
+        return
+    end
+    local text, fill, color = NoDataView(displayState)
+    if not text then
+        RestoreBar(health, unit, "ОЗ")
+        RestoreBar(energy, unit, "ОЭ")
+        return
+    end
+    local healthText = (tagged and displayState == "none") and (text .. " (нет профиля)") or text
+    Update(health, unit, fill, fill, color or HEALTH_COLOR, "ОЗ", vehicle, 0, healthText)
+    Update(energy, unit, fill, fill, color or ENERGY_COLOR, "ОЭ", vehicle, manaTextOffsetX, text)
 end
 
 local function HidePlayerClassPowerBars()
@@ -413,27 +461,40 @@ local function HookTargetLayout()
     end
 end
 
-local focusGuid, focusProfile
-local function FocusProfile()
-    local guid = SafeGuid("focus")
-    if guid ~= focusGuid then focusGuid, focusProfile = guid, nil end
-    if not guid then return end
-    local selfProfile = SelfProfileFor("focus")
-    if selfProfile then return selfProfile end
-    if R.focus and (R.focus.guid == guid or R.focus.targetGuid == guid) and R.focus.inSystem then
-        focusProfile = R.focus
-        return focusProfile
+-- Units still waiting for an answer are batched into RequestUnitsSync; target and player
+-- have their own SyncTarget/SyncProfile requests and the server throttles reads.
+local function QueueIfLoading(unit, state)
+    if state == "loading" and unit ~= "target" and unit ~= "player" and R.QueueUnitSync then
+        R.QueueUnitSync(SafeGuid(unit))
     end
-    local cached = R.LookupUnitByGuid and R.LookupUnitByGuid(guid)
-    if cached and cached.inSystem then
-        focusProfile = cached
-        return focusProfile
+end
+
+local function DisplayStateFor(unit)
+    if R.IsSystemUnavailable() then return "unavailable" end
+    local state, data = R.GetUnitDisplayState(unit)
+    QueueIfLoading(unit, state)
+    return state, data
+end
+
+local function MainDisplayState(unit)
+    if R.IsSystemUnavailable() then return "unavailable" end
+    if unit == "player" then
+        local state = R.GetSelfDisplayState()
+        return state, state == "ready" and R.profile or nil
     end
-    local targetGuid = SafeGuid("target")
-    if targetGuid and guid == targetGuid then
-        focusProfile = R.TargetResourceProfile()
+    local selfProfile = SelfProfileFor(unit)
+    if selfProfile then return "ready", selfProfile end
+    if unit == "target" then
+        local p = R.TargetResourceProfile()
+        if p then return "ready", p end
     end
-    return focusProfile
+    local state, data = R.GetUnitDisplayState(unit)
+    if state ~= "ready" and unit == "focus" then
+        local guid, targetGuid = SafeGuid("focus"), SafeGuid("target")
+        if guid and guid == targetGuid then return MainDisplayState("target") end
+    end
+    QueueIfLoading(unit, state)
+    return state, data
 end
 
 function R.UpdateStandardUnitFrame(frame, unitToken, isCompactParty)
@@ -453,29 +514,25 @@ function R.UpdateStandardUnitFrame(frame, unitToken, isCompactParty)
     end
     if not healthBar or not manaBar then return end
 
-    local p
-    if R.available then
-        if unitToken == "player" then
-            p = R.profile
-        elseif unitToken == "focus" then
-            p = FocusProfile()
-        elseif unitToken == "target" then
-            p = R.TargetResourceProfile()
-        else
-            local d = R.GetUnitData and R.GetUnitData(unitToken)
-            if d and d.inSystem then p = d end
-        end
+    local displayState, p
+    if unitToken == "player" or unitToken == "target" or unitToken == "focus" then
+        displayState, p = MainDisplayState(unitToken)
+    else
+        displayState, p = DisplayStateFor(unitToken)
     end
 
     local vehicle = unitToken == "player" and UnitHasVehicleUI and UnitHasVehicleUI("player")
-    if isCompactParty and not p then
-        RestoreBar(healthBar, unitToken, "ОЗ")
-        RestoreBar(manaBar, unitToken, "ОЭ")
-        return
-    end
     local manaTextOffsetX = isTargetOrFocus and -4 or 0
-    Update(healthBar, unitToken, p and p.curHealth, p and p.maxHealth, { 0, 1, 0 }, "ОЗ", vehicle, 0)
-    Update(manaBar, unitToken, p and p.curEnergy, p and p.maxEnergy, { 0, 0.45, 1 }, "ОЭ", vehicle, manaTextOffsetX)
+    ApplyDisplayState(healthBar, manaBar, unitToken, displayState, p, vehicle, manaTextOffsetX,
+        isTargetOrFocus and not isCompactParty)
+end
+
+function R.RestoreCompactFrame(frame)
+    if not frame then return end
+    if frame.healthBar and barOverlays[frame.healthBar] then FallbackToNative(frame.healthBar) end
+    if frame.powerBar and barOverlays[frame.powerBar] then FallbackToNative(frame.powerBar) end
+    if customStatusFrames[frame] and frame.statusText then frame.statusText:SetText("") end
+    customStatusFrames[frame] = nil
 end
 
 function R.UpdateCompactRaidFrame(frame)
@@ -488,28 +545,29 @@ function R.UpdateCompactRaidFrame(frame)
         frame.name:SetWordWrap(false)
     end
 
-    local data = R.available and R.GetUnitData and R.GetUnitData(unit)
-    if not data or not data.inSystem then
-        if frame.healthBar and barOverlays[frame.healthBar] then
-            barOverlays[frame.healthBar]:Hide()
-            SetNativeBarVisualsAlpha(frame.healthBar, 1)
+    local displayState, data = DisplayStateFor(unit)
+    local ready = displayState == "ready" and data
+    local noDataText, fill, noDataColor
+    if not ready then
+        noDataText, fill, noDataColor = NoDataView(displayState)
+        if not noDataText then
+            R.RestoreCompactFrame(frame)
+            return
         end
-        if frame.powerBar and barOverlays[frame.powerBar] then
-            barOverlays[frame.powerBar]:Hide()
-            SetNativeBarVisualsAlpha(frame.powerBar, 1)
-        end
-        customStatusFrames[frame] = nil
-        return
     end
 
     if frame.healthBar then
         local hpOv = EnsureOverlay(frame.healthBar, isNamePlate,
             isNamePlate and (_G.SystemFont_NamePlate_Outlined and "SystemFont_NamePlate_Outlined" or "GameFontHighlightSmallOutline") or nil)
         if hpOv then
-            SetNativeBarVisualsAlpha(frame.healthBar, 0)
-            SetOverlayValues(hpOv, data.curHealth, data.maxHealth, { 0.0, 0.85, 0.0 }, BONUS_COLORS["ОЗ"])
+            HideNative(frame.healthBar)
+            if ready then
+                SetOverlayValues(hpOv, data.curHealth, data.maxHealth, { 0.0, 0.85, 0.0 }, BONUS_COLORS["ОЗ"])
+            else
+                SetOverlayValues(hpOv, fill, fill, noDataColor or { 0.0, 0.85, 0.0 })
+            end
             if hpOv.TextString then
-                hpOv.TextString:SetText(R.FormatResource(data.curHealth, data.maxHealth))
+                hpOv.TextString:SetText(ready and R.FormatResource(data.curHealth, data.maxHealth) or ("ОЗ: " .. noDataText))
                 hpOv.TextString:Show()
             end
             hpOv:Show()
@@ -519,8 +577,12 @@ function R.UpdateCompactRaidFrame(frame)
     if frame.powerBar and not isNamePlate then
         local mpOv = EnsureOverlay(frame.powerBar, false)
         if mpOv then
-            SetNativeBarVisualsAlpha(frame.powerBar, 0)
-            SetOverlayValues(mpOv, data.curEnergy, data.maxEnergy, { 0.0, 0.44, 0.95 }, BONUS_COLORS["ОЭ"])
+            HideNative(frame.powerBar)
+            if ready then
+                SetOverlayValues(mpOv, data.curEnergy, data.maxEnergy, { 0.0, 0.44, 0.95 }, BONUS_COLORS["ОЭ"])
+            else
+                SetOverlayValues(mpOv, fill, fill, noDataColor or { 0.0, 0.44, 0.95 })
+            end
             mpOv:Show()
         end
     end
@@ -532,30 +594,28 @@ function R.UpdateCompactRaidFrame(frame)
         frame.statusText:SetPoint("BOTTOMRIGHT", frame.healthBar or frame, "BOTTOMRIGHT", -3, 2)
         if frame.statusText.SetWordWrap then frame.statusText:SetWordWrap(false) end
 
-        local h = (frame.GetHeight and frame:GetHeight()) or 36
-        local health = R.FormatResource(data.curHealth, data.maxHealth)
-        if h >= 42 then
-            frame.statusText:SetText("ОЗ " .. health .. " | ОЭ " .. (tonumber(data.curEnergy) or 0))
+        if not ready then
+            frame.statusText:SetText("ОЗ: " .. noDataText)
         else
-            frame.statusText:SetText(health)
+            local h = (frame.GetHeight and frame:GetHeight()) or 36
+            local health = R.FormatResource(data.curHealth, data.maxHealth)
+            if h >= 42 then
+                frame.statusText:SetText("ОЗ " .. health .. " | ОЭ " .. (tonumber(data.curEnergy) or 0))
+            else
+                frame.statusText:SetText(health)
+            end
         end
         frame.statusText:Show()
     end
 end
 
 local function UpdateMainUnit(unit)
-    local p
-    if R.available then
-        if unit == "player" then p = R.profile
-        elseif unit == "focus" then p = FocusProfile()
-        else p = R.TargetResourceProfile() end
-    end
+    local displayState, p = MainDisplayState(unit)
     if unit ~= "player" and UnitFrame(unit) then FullResourceLayout(UnitFrame(unit)) end
     local vehicle = unit == "player" and UnitHasVehicleUI and UnitHasVehicleUI("player")
     local health, energy = Bars(unit)
     local manaTextOffsetX = (unit ~= "player") and -4 or 0
-    Update(health, unit, p and p.curHealth, p and p.maxHealth, { 0, 1, 0 }, "ОЗ", vehicle, 0)
-    Update(energy, unit, p and p.curEnergy, p and p.maxEnergy, { 0, 0.45, 1 }, "ОЭ", vehicle, manaTextOffsetX)
+    ApplyDisplayState(health, energy, unit, displayState, p, vehicle, manaTextOffsetX, unit ~= "player")
 end
 
 -- Native hooks fire from inside our own updates (Blizzard re-runs CheckLevel/Update on
@@ -614,10 +674,7 @@ end
 local function HideTooltipOverlay()
     local bar = TooltipBar()
     local overlay = bar and barOverlays[bar]
-    if overlay and overlay:IsShown() then
-        overlay:Hide()
-        SetNativeBarVisualsAlpha(bar, 1)
-    end
+    if overlay and overlay:IsShown() then FallbackToNative(bar) end
 end
 
 function R.UpdateTooltipHealth(unit)
@@ -626,18 +683,27 @@ function R.UpdateTooltipHealth(unit)
     tooltipUnit = unit
     local guid = unit and SafeGuid(unit)
     if not guid then HideTooltipOverlay(); return end
-    local data = R.available and R.GetUnitData and R.GetUnitData(unit)
-    if not data and R.QueueUnitSync then R.QueueUnitSync(guid) end
-    if not data or not data.inSystem then HideTooltipOverlay(); return end
+    local displayState, data = DisplayStateFor(unit)
+    local ready = displayState == "ready" and data
+    local noDataText, fill, noDataColor
+    if not ready then
+        noDataText, fill, noDataColor = NoDataView(displayState)
+        if not noDataText then HideTooltipOverlay(); return displayState end
+    end
     local overlay = EnsureOverlay(bar, true, "GameFontHighlightSmallOutline", bar)
-    if not overlay then return end
-    SetNativeBarVisualsAlpha(bar, 0)
-    SetOverlayValues(overlay, data.curHealth, data.maxHealth, { 0.0, 0.85, 0.0 }, BONUS_COLORS["ОЗ"])
+    if not overlay then return displayState end
+    HideNative(bar)
+    if ready then
+        SetOverlayValues(overlay, data.curHealth, data.maxHealth, { 0.0, 0.85, 0.0 }, BONUS_COLORS["ОЗ"])
+    else
+        SetOverlayValues(overlay, fill, fill, noDataColor or { 0.0, 0.85, 0.0 })
+    end
     if overlay.TextString then
-        overlay.TextString:SetText(R.FormatResource(data.curHealth, data.maxHealth))
+        overlay.TextString:SetText(ready and R.FormatResource(data.curHealth, data.maxHealth) or ("ОЗ: " .. noDataText))
         overlay.TextString:Show()
     end
     overlay:Show()
+    return displayState
 end
 
 local function RefreshTooltipHealth()
@@ -661,7 +727,10 @@ end
 if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip)
         if tooltip ~= GameTooltip then return end
-        R.UpdateTooltipHealth(TooltipUnitToken(tooltip))
+        local displayState = R.UpdateTooltipHealth(TooltipUnitToken(tooltip))
+        local line = displayState ~= "ready" and displayState ~= "loading" and R.DISPLAY_STATE_TEXT[displayState]
+        if displayState == "error" then line = "Ошибка данных" end
+        if line and tooltip.AddLine then tooltip:AddLine(line, 0.6, 0.6, 0.6) end
     end)
 end
 if GameTooltip and GameTooltip.HookScript then
@@ -704,6 +773,7 @@ for _, event in ipairs({
     "UNIT_EXITED_VEHICLE",
     "ADDON_LOADED",
     "NAME_PLATE_UNIT_ADDED",
+    "NAME_PLATE_UNIT_REMOVED",
 }) do
     events:RegisterEvent(event)
 end
@@ -713,6 +783,13 @@ events:SetScript("OnEvent", function(_, event, unit)
         R.UpdateNamePlate(unit)
         return
     end
+    if event == "NAME_PLATE_UNIT_REMOVED" then
+        R.InvalidateGuid(SafeGuid(unit), unit)
+        local plate = C_NamePlate and C_NamePlate.GetNamePlateForUnit and C_NamePlate.GetNamePlateForUnit(unit)
+        if plate and plate.UnitFrame then R.RestoreCompactFrame(plate.UnitFrame) end
+        return
+    end
+    if event == "GROUP_ROSTER_UPDATE" then R.PruneUnitCache() end
     if (event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD"
         or event == "PLAYER_FOCUS_CHANGED" or event == "GROUP_ROSTER_UPDATE")
         and R.RequestVisibleUnitsSync then

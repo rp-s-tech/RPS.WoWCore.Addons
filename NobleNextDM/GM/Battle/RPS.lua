@@ -36,7 +36,7 @@ local function Build(parent)
     status:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -12)
     local scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -45)
-    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -30, 55)
+    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -30, 88)
     local content = CreateFrame("Frame", nil, scroll); content:SetSize(430, 550); scroll:SetScrollChild(content)
     local fields, statFields = {}, {}
     local schema = {
@@ -72,6 +72,15 @@ local function Build(parent)
     local save = ns.CreateNGButton(panel, "Сохранить цель", 150, 26); save:SetPoint("BOTTOMLEFT", 12, 14)
     local refresh = ns.CreateNGButton(panel, "Обновить", 110, 26); refresh:SetPoint("LEFT", save, "RIGHT", 8, 0)
     local round = ns.CreateNGButton(panel, "Новый раунд цели", 160, 26); round:SetPoint("LEFT", refresh, "RIGHT", 8, 0)
+    -- XP only from the DM; the server checks staff rights and replays the same requestId idempotently.
+    local xpLabel = ns.CreateNGLabel(panel, "Опыт:"); xpLabel:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 12, 54)
+    local xpAmount = ns.CreateNGEditBox(panel, nil, 50, 22); xpAmount:SetAutoFocus(false)
+    xpAmount:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 60, 50); xpAmount:SetText("")
+    local xpReason = ns.CreateNGEditBox(panel, nil, 210, 22); xpReason:SetAutoFocus(false)
+    xpReason:SetPoint("LEFT", xpAmount, "RIGHT", 8, 0); xpReason:SetText("")
+    local xpGrant = ns.CreateNGButton(panel, "Выдать XP", 100, 24); xpGrant:SetPoint("LEFT", xpReason, "RIGHT", 8, 0)
+    local xpWatch = CreateFrame("Frame", nil, panel)
+    local xpPending
 
     local function Display(explicitTarget, force)
         local target, sourceLabel = explicitTarget, "Текущая цель"
@@ -89,6 +98,7 @@ local function Build(parent)
             status:SetText("Выберите доступную цель.")
             save:SetEnabled(false)
             round:SetEnabled(false)
+            xpGrant:SetEnabled(false)
             return
         end
         target.targetGuid = targetGuid
@@ -106,6 +116,7 @@ local function Build(parent)
         for key in pairs(statFields) do fields[key]:SetText(tostring(target.stats and target.stats[key] or 0)) end
         save:SetEnabled(target.canEdit == true and not pending)
         round:SetEnabled(target.canEdit == true and target.isPlayer == true and not pending)
+        xpGrant:SetEnabled(target.isPlayer == true and not xpPending)
     end
 
     local function Submit(beginRound)
@@ -137,6 +148,51 @@ local function Build(parent)
 
     save:SetScript("OnClick", function() Submit(false) end)
     round:SetScript("OnClick", function() Submit(true) end)
+
+    local function GrantXp()
+        if xpPending or not shown or shown.isPlayer ~= true then return end
+        local amount = tonumber(xpAmount:GetText())
+        if not amount or amount < 1 or amount > 500 or amount % 1 ~= 0 then
+            ns.PrintError("Опыт: целое число от 1 до 500."); return
+        end
+        local reason = (xpReason:GetText() or ""):match("^%s*(.-)%s*$")
+        if #reason < 3 then ns.PrintError("Укажите причину выдачи опыта."); return end
+        local id = R.RequestId()
+        local args = { UnitTargetGuid(shown), amount, reason, id }
+        if R.Send("DmGrantXp", args[1], args[2], args[3], args[4]) then
+            xpPending = { id = id, args = args, sentAt = GetTime(), retries = 0, name = shown.name }
+            xpGrant:SetEnabled(false)
+            status:SetText("Выдача опыта: ожидание ответа сервера...")
+        end
+    end
+    xpGrant:SetScript("OnClick", GrantXp)
+    xpWatch:SetScript("OnUpdate", function()
+        if not xpPending or GetTime() - xpPending.sentAt < 10 then return end
+        xpPending.sentAt = GetTime(); xpPending.retries = xpPending.retries + 1
+        if xpPending.retries <= 2 then
+            local a = xpPending.args
+            R.Send("DmGrantXp", a[1], a[2], a[3], a[4])
+        else
+            xpPending = nil
+            xpGrant:SetEnabled(shown ~= nil and shown.isPlayer == true)
+            status:SetText("Статус выдачи опыта неизвестен. Проверьте уровень игрока перед повтором.")
+        end
+    end)
+    ns.Subscribe("RPS_XP_GRANT_RESULT", "rps_dm_xp", function(result)
+        if not xpPending or result.requestId ~= xpPending.id then return end
+        local name = xpPending.name or "Игрок"
+        xpPending = nil
+        xpGrant:SetEnabled(shown ~= nil and shown.isPlayer == true)
+        if result.ok then
+            xpReason:SetText("")
+            status:SetText(string.format("%s: опыт выдан, уровень %s (RP %s)%s", name, tostring(result.newLevel),
+                tostring(result.rpLevel or "?"), result.code and (" — " .. tostring(result.code)) or ""))
+        else
+            local label = (ns.Progression and ns.Progression.ErrorText and ns.Progression.ErrorText(result.code))
+                or (R.FormatSystemError and R.FormatSystemError(result.code)) or tostring(result.code)
+            status:SetText("Опыт не выдан: " .. label)
+        end
+    end)
     refresh:SetScript("OnClick", function()
         dirty = false
         R.Send("RequestTargetSync")
