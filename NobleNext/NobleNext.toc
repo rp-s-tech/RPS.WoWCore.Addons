@@ -24,6 +24,8 @@ NobleNext.lua
 Core/Extensions.lua
 Modules/RoleplayMessages/Init.lua
 Modules/Transmog/Init.lua
+Modules/ItemTooltip/StarterOutfit.lua
+Modules/ItemTooltip/NativeItems.lua
 Modules/CharacterFrame/Textures.lua
 Modules/CharacterFrame/RPS.lua
 Modules/CharacterFrame/Init.lua

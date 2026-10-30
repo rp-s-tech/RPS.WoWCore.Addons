@@ -95,15 +95,18 @@ function R.UpdateCharacterHeaderLevelText()
 end
 
 -- "Настроить RP-персонажа" under the sheet while the server reports none/legacy/reconfigure;
--- "Сбросить расовые данные" while SyncProfile.creation.raceUpdateAvailable is true.
+-- "Сбросить расовые данные" while SyncProfile.creation.raceUpdateAvailable is true;
+-- "Сменить архетип" with its price while SyncProfile.creation.archetypeResetCost is present.
+-- Visible buttons stack upwards from the bottom of the sheet.
 local function UpdateCreationControls(parent, view)
     local C = ns.CharacterCreation
     local state = C and C.GetState()
     local setup = CREATION_LABELS[state]
     local raceUpdate = C and C.RaceUpdateAvailable and C.RaceUpdateAvailable() or false
+    local archetypeCost = C and C.ArchetypeResetCost and C.ArchetypeResetCost() or nil
     local label = setup or (raceUpdate and "Доступно обновление расовых данных") or nil
     local box = R.creationBox
-    if label and not box then
+    if (label or archetypeCost) and not box then
         box = CreateFrame("Frame", nil, parent)
         box:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 8, 6)
         box:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -8, 6)
@@ -111,23 +114,33 @@ local function UpdateCreationControls(parent, view)
         box.Label = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         box.Label:SetPoint("TOP", box, "TOP", 0, 0)
         box.Button = ns.CreateNGButton(box, "Настроить RP-персонажа", 180, 22)
-        box.Button:SetPoint("BOTTOM", box, "BOTTOM", 0, 0)
         box.Button:SetScript("OnClick", function() ns.CharacterCreation.Open() end)
         box.ResetButton = ns.CreateNGButton(box, "Сбросить расовые данные", 180, 22)
         box.ResetButton:SetScript("OnClick", function() ns.CharacterCreation.ConfirmRaceReset() end)
+        box.ArchetypeButton = ns.CreateNGButton(box, "Сменить архетип", 180, 22)
+        box.ArchetypeButton:SetScript("OnClick", function() ns.CharacterCreation.ConfirmArchetypeReset() end)
         R.creationBox = box
     end
-    local both = setup ~= nil and raceUpdate
+    local shown = {}
     if box then
+        local wanted = { { box.Button, setup ~= nil }, { box.ResetButton, raceUpdate },
+            { box.ArchetypeButton, archetypeCost ~= nil } }
+        for _, item in ipairs(wanted) do
+            if item[2] then shown[#shown + 1] = item[1]; item[1]:Show() else item[1]:Hide() end
+        end
+        for i, button in ipairs(shown) do
+            button:ClearAllPoints()
+            button:SetPoint("BOTTOM", box, "BOTTOM", 0, (i - 1) * 24)
+        end
+        if archetypeCost then
+            box.ArchetypeButton:SetText("Сменить архетип (" .. C.FormatMoney(archetypeCost) .. ")")
+            box.ArchetypeButton:SetEnabled(not C.archetypeResetPending)
+        end
         box.Label:SetText(label or "")
-        box:SetHeight(both and 68 or 44)
-        if setup then box.Button:Show() else box.Button:Hide() end
-        box.ResetButton:ClearAllPoints()
-        box.ResetButton:SetPoint("BOTTOM", box, "BOTTOM", 0, both and 24 or 0)
-        if raceUpdate then box.ResetButton:Show() else box.ResetButton:Hide() end
-        if label then box:Show() else box:Hide() end
+        box:SetHeight(#shown * 24 + (label and 20 or 4))
+        if #shown > 0 then box:Show() else box:Hide() end
     end
-    local inset = both and 76 or label and 52 or 6
+    local inset = #shown > 0 and (#shown * 24 + (label and 28 or 12)) or 6
     if view and view.bottomInset ~= inset then
         view:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -25, inset)
         view.bottomInset = inset

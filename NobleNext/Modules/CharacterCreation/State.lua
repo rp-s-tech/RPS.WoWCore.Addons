@@ -21,19 +21,19 @@ local C = {
 ns.CharacterCreation = C
 
 -- RP names belong to TotalRP; the wizard has no text input and never sends rpName.
+-- Equipment is not chosen here: players get weapons from the starter vendor, the draft sends no items.
 C.STEPS = {
     { key = "race",      title = "Раса" },
     { key = "trait",     title = "Черта" },
     { key = "mastery",   title = "Мастерство" },
     { key = "archetype", title = "Архетип" },
-    { key = "starter",   title = "Снаряжение" },
     { key = "confirm",   title = "Итог" },
 }
 C.STEP_INDEX = {}
 for i, step in ipairs(C.STEPS) do C.STEP_INDEX[step.key] = i end
 C.FIELD_STEP = {
     race = 1, racialFeature = 1, trait = 2, traits = 2, traitChoice = 2,
-    mastery = 3, archetype = 4, starterItems = 5,
+    mastery = 3, archetype = 4, starterItems = 5,  -- the summary step
 }
 C.STUB_TAG = "заглушка, бонусы в разработке"
 C.MASTERY_NAMES = { skill = "Навык", knowledge = "Знание", endurance = "Упорство", craft = "Ремесло" }
@@ -48,11 +48,16 @@ C.PREVIEW_DELAY = 0.5
 C.PREVIEW_TIMEOUT = 5
 C.CONFIRM_TIMEOUT = 15
 C.RESET_POPUP = "NOBLENEXT_RPS_RACE_RESET"
+C.ARCHETYPE_POPUP = "NOBLENEXT_RPS_ARCHETYPE_RESET"
+-- The only step a scoped reconfigure opens besides the summary.
+C.SCOPE_STEP = { race = 1, archetype = 4 }
 
 local ERROR_TEXT = {
     revision_conflict = "Профиль изменился на сервере: варианты перезагружены, черновик сохранён. Подтвердите ещё раз.",
-    already_confirmed = "Персонаж уже подтверждён. Перенастройку выполняет ведущий.",
+    already_confirmed = "Персонаж уже подтверждён. Архетип можно сменить кнопкой под листом персонажа.",
     race_preset_current = "Расовые данные уже актуальны: сбрасывать нечего.",
+    not_enough_money = "Недостаточно денег для смены архетипа.",
+    archetype_reset_cost_changed = "Стоимость смены архетипа изменилась. Проверьте цену и повторите.",
 }
 
 local function Find(list, key)
@@ -131,6 +136,26 @@ function C.RaceUpdateAvailable()
     return state ~= nil and state.raceUpdateAvailable == true
 end
 
+-- Copper price of the next archetype reset from SyncProfile.creation; nil when it is not offered.
+function C.ArchetypeResetCost()
+    if C.GetState() ~= "complete" then return nil end
+    local cost = C.syncCreation and tonumber(C.syncCreation.archetypeResetCost)
+    return cost and cost >= 0 and math.floor(cost) or nil
+end
+
+-- "бесплатно", "5 серебра", "1 золото 50 серебра"; coin icons when the client offers them.
+function C.FormatMoney(copper)
+    copper = tonumber(copper) or 0
+    if copper <= 0 then return "бесплатно" end
+    if GetCoinTextureString then return GetCoinTextureString(copper) end
+    local gold, silver, rest = math.floor(copper / 10000), math.floor(copper % 10000 / 100), copper % 100
+    local parts = {}
+    if gold > 0 then parts[#parts + 1] = gold .. " з." end
+    if silver > 0 then parts[#parts + 1] = silver .. " с." end
+    if rest > 0 then parts[#parts + 1] = rest .. " м." end
+    return table.concat(parts, " ")
+end
+
 function C.MasteryKeys()
     local mastery = C.options and C.options.mastery
     if type(mastery) == "table" and type(mastery.keys) == "table" and #mastery.keys > 0 then return mastery.keys end
@@ -190,11 +215,6 @@ local function FitMastery()
     end
 end
 
-function C.StarterLimit()
-    local starter = C.options and C.options.starter
-    return tonumber(starter and starter.maxItems) or 6
-end
-
 local function NewDraft(seed)
     local draft = { mastery = {}, starterItems = {} }
     if type(seed) == "table" then
@@ -203,11 +223,6 @@ local function NewDraft(seed)
         end
         if type(seed.mastery) == "table" then
             for key, value in pairs(seed.mastery) do draft.mastery[key] = tonumber(value) end
-        end
-        if type(seed.starterItems) == "table" then
-            for _, key in ipairs(seed.starterItems) do
-                if type(key) == "string" then draft.starterItems[#draft.starterItems + 1] = key end
-            end
         end
     end
     return draft
@@ -236,15 +251,7 @@ function C.Sanitize()
     end
     d.mastery = mastery
     FitMastery()
-    local items, seen, limit = {}, {}, C.StarterLimit()
-    local catalog = o.starter and o.starter.items
-    for _, key in ipairs(d.starterItems or {}) do
-        if not seen[key] and Find(catalog, key) and #items < limit then
-            seen[key] = true
-            items[#items + 1] = key
-        end
-    end
-    d.starterItems = items
+    d.starterItems = {}
 end
 
 function C.Fingerprint(d)
@@ -350,10 +357,12 @@ function C.StepMissing(step)
     return false
 end
 
--- In scope "race" only the race and the summary stay editable; a step the server
--- still reports as incomplete is unlocked so the player is never stuck.
+-- In scope "race" only the race and the summary stay editable, in scope "archetype" only the
+-- archetype and the summary; a step the server still reports as incomplete is unlocked so the
+-- player is never stuck.
 function C.StepLocked(step)
-    if C.Scope() ~= "race" or step == 1 or step == #C.STEPS then return false end
+    local open = C.SCOPE_STEP[C.Scope() or ""]
+    if not open or step == open or step == #C.STEPS then return false end
     return not C.StepMissing(step)
 end
 
@@ -443,22 +452,6 @@ function C.AdjustMastery(key, delta)
     local value = (d.mastery[key] or 0) + delta
     if value < 0 or (delta > 0 and C.MasteryUsed() >= C.MasteryBudget()) then return false end
     d.mastery[key] = value
-    C.Changed()
-    return true
-end
-
-function C.ToggleStarter(key)
-    if FieldLocked("starterItems") then return false end
-    local d = C.EnsureDraft()
-    for i, other in ipairs(d.starterItems) do
-        if other == key then
-            table.remove(d.starterItems, i)
-            C.Changed()
-            return true
-        end
-    end
-    if #d.starterItems >= C.StarterLimit() then return false end
-    d.starterItems[#d.starterItems + 1] = key
     C.Changed()
     return true
 end
@@ -577,6 +570,66 @@ function C.ConfirmRaceReset()
     return true
 end
 
+-- ResetArchetype(expectedCost, requestId): the server takes the money, clears the archetype and
+-- answers with ArchetypeReset or SyncProfile.creation.scope = "archetype".
+function C.ResetArchetype(cost)
+    if C.archetypeResetPending then return nil end
+    cost = cost or C.ArchetypeResetCost()
+    if cost == nil then
+        if ns.Print then ns.Print("Смена архетипа сейчас недоступна.") end
+        return nil
+    end
+    local requestId = R.RequestId()
+    if not R.Send("ResetArchetype", cost, requestId) then return nil end
+    C.archetypeResetPending = requestId
+    C_Timer.After(C.CONFIRM_TIMEOUT, function()
+        if C.archetypeResetPending == requestId then
+            C.archetypeResetPending = nil
+            if ns.Print then ns.Print("Сервер не ответил на смену архетипа. Попробуйте ещё раз.") end
+            Notify()
+        end
+    end)
+    Notify()
+    return requestId
+end
+
+local function FinishArchetypeReset(text)
+    C.archetypeResetPending = nil
+    if ns.Print and text then ns.Print(text) end
+    Notify()
+end
+
+if StaticPopupDialogs then
+    StaticPopupDialogs[C.ARCHETYPE_POPUP] = {
+        text = "Сменить архетип?",
+        button1 = "Сменить",
+        button2 = "Отмена",
+        OnAccept = function(self, data) C.ResetArchetype(data) end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+end
+
+-- The popup carries the price it showed, so the request always names the price the player accepted.
+function C.ConfirmArchetypeReset()
+    local cost = C.ArchetypeResetCost()
+    if cost == nil then
+        if ns.Print then ns.Print("Смена архетипа сейчас недоступна.") end
+        return false
+    end
+    local dialog = StaticPopupDialogs and StaticPopupDialogs[C.ARCHETYPE_POPUP]
+    if StaticPopup_Show and dialog then
+        dialog.text = "Сменить архетип?\nСтоимость: " .. C.FormatMoney(cost)
+            .. ".\nАрхетип нужно будет выбрать заново, остальной выбор сохранится."
+        StaticPopup_Show(C.ARCHETYPE_POPUP, nil, nil, cost)
+    else
+        C.ResetArchetype(cost)
+    end
+    return true
+end
+
 local function ResetSession()
     C.draft, C.preview, C.previewFingerprint, C.sentFingerprint = nil, nil, nil, nil
     C.errors, C.warnings = {}, {}
@@ -644,11 +697,32 @@ function handlers.RaceDataReset(_, payload)
     RaceResetDone()
 end
 
+local function ArchetypeResetDone()
+    ResetSession()
+    C.step = C.SCOPE_STEP.archetype
+    C.visited[C.step] = true
+    FinishArchetypeReset("Архетип сброшен: выберите новый архетип.")
+    if C.OnArchetypeReset then C.OnArchetypeReset() end
+end
+
+function handlers.ArchetypeReset(_, payload)
+    if type(payload) ~= "table" or not C.archetypeResetPending then return end
+    if payload.requestId ~= nil and payload.requestId ~= C.archetypeResetPending then return end
+    if type(payload.state) == "string" then
+        C.state = { creationState = payload.state, revision = tonumber(payload.revision), scope = payload.scope }
+    end
+    ArchetypeResetDone()
+end
+
 function handlers.CharacterError(_, payload)
     if type(payload) ~= "table" then return end
     local requestId = payload.requestId
     if C.resetPending and (requestId == C.resetPending or (requestId == nil and payload.code == "race_preset_current")) then
         FinishRaceReset(C.ErrorText(payload))
+        return
+    end
+    if C.archetypeResetPending and requestId == C.archetypeResetPending then
+        FinishArchetypeReset(C.ErrorText(payload))
         return
     end
     if requestId ~= nil and not (C.pending and requestId == C.pending.requestId) then return end
@@ -685,14 +759,17 @@ local function Attach()
     local sync = H.SyncProfile
     if sync then
         H.SyncProfile = function(player, payload)
-            local resetDone = false
+            local resetDone, archetypeDone = false, false
             if type(payload) == "table" and type(payload.profile) == "table" then
                 local creation = payload.creation or payload.profile.creation
                 C.syncCreation = type(creation) == "table" and creation or nil
-                resetDone = C.resetPending ~= nil and C.syncCreation ~= nil and C.syncCreation.scope == "race"
+                local scope = C.syncCreation and C.syncCreation.scope
+                resetDone = C.resetPending ~= nil and scope == "race"
+                archetypeDone = C.archetypeResetPending ~= nil and scope == "archetype"
             end
             local result = sync(player, payload)
             if resetDone then RaceResetDone() end
+            if archetypeDone then ArchetypeResetDone() end
             return result
         end
     end
@@ -711,6 +788,8 @@ if ns.Subscribe then
     ns.Subscribe("RPS_REQUEST_FAILED", "CharacterCreation", function(payload)
         if type(payload) == "table" and C.resetPending and payload.requestId == C.resetPending then
             FinishRaceReset(C.ErrorText(payload))
+        elseif type(payload) == "table" and C.archetypeResetPending and payload.requestId == C.archetypeResetPending then
+            FinishArchetypeReset(C.ErrorText(payload))
         elseif type(payload) == "table" and C.pending and payload.requestId == C.pending.requestId then
             C.pending = nil
             C.status = C.ErrorText(payload)

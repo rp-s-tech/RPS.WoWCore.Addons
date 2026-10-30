@@ -35,8 +35,8 @@ local ERROR_LABELS_RU = {
     rate_limited               = "Слишком частые запросы, подождите 1 сек.",
     insufficient_energy        = "Недостаточно ОЭ.",
     not_enough_energy          = "Недостаточно ОЭ.",
-    round_budget_exhausted     = "Превышен лимит траты ОЭ за раунд (6 ОЭ).",
-    round_limit                = "Превышен лимит траты ОЭ за раунд (6 ОЭ).",
+    round_budget_exhausted     = "Превышен лимит траты ОЭ за раунд.",
+    round_limit                = "Превышен лимит траты ОЭ за раунд.",
     target_outside_system      = "С этой целью нельзя взаимодействовать.",
     out_of_system              = "С этой целью нельзя взаимодействовать.",
     incapacitated              = "Вы тяжело ранены (0 ОЗ) — действия недоступны.",
@@ -48,6 +48,9 @@ local ERROR_LABELS_RU = {
     actor_busy                 = "Персонаж занят обработкой предыдущего действия.",
     request_pending            = "Запрос уже обрабатывается сервером.",
     request_conflict           = "Конфликт идентификатора запроса.",
+    pending_recovery           = "Результат действия ожидает восстановления. Повторите тот же запрос.",
+    receipt_incomplete         = "Сохранённый результат требует сверки ведущим.",
+    invalid_receipt            = "Не удалось прочитать сохранённый результат.",
     reaction_unavailable       = "Окно защитной реакции уже закрыто.",
     reaction_queue_full        = "Очередь защитных реакций цели заполнена.",
     system_unavailable         = "Действие временно недоступно.",
@@ -639,6 +642,7 @@ function R.PerformAction(actionKey, args)
     if actionKey == "attack" then
         if not R.available or not R.profile then return nil end
         args.revision = R.profile.revision
+        args.targetGuid = args.targetGuid or (UnitGUID and NormalizeWireGuid(UnitGUID("target")))
     end
     if R.Send("PerformAction", actionKey, args, requestId) then return requestId end
     return nil

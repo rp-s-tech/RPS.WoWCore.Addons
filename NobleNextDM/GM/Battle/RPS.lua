@@ -30,57 +30,166 @@ local function GetActiveInspectorUnit()
     return nil, "Нет цели"
 end
 
+local ICONS = {
+    target = "Interface\\Icons\\Ability_Marksmanship",
+    stats = "Interface\\Icons\\INV_Misc_Dice_01",
+    xp = "Interface\\Icons\\INV_Misc_Book_11",
+    resources = "Interface\\Icons\\Spell_Holy_Restoration",
+    defense = "Interface\\Icons\\INV_Shield_06",
+    combat = "Interface\\Icons\\INV_Sword_04",
+    mastery = "Interface\\Icons\\Spell_Holy_SealOfWisdom",
+}
+
+local function Icon(parent, path, size)
+    local icon = parent:CreateTexture(nil, "ARTWORK")
+    icon:SetSize(size or 16, size or 16)
+    icon:SetTexture(path)
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    return icon
+end
+
+-- Titled block with an icon and a divider under the title (NobleNextLib section style).
+local function Section(parent, title, icon)
+    local widgets = ns.NNL and ns.NNL.Widgets
+    local section
+    if widgets and widgets.CreateSection then
+        section = widgets.CreateSection(parent, { title = title })
+    else
+        section = CreateFrame("Frame", nil, parent)
+        section.Title = section:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        section.Title:SetText(title)
+    end
+    Icon(section, icon):SetPoint("TOPLEFT", section, "TOPLEFT", 10, -6)
+    section.Title:ClearAllPoints()
+    section.Title:SetPoint("TOPLEFT", section, "TOPLEFT", 32, -8)
+    section.Title:SetPoint("TOPRIGHT", section, "TOPRIGHT", -12, -8)
+    return section
+end
+
 local function Build(parent)
     local panel = CreateFrame("Frame", nil, parent); panel:SetAllPoints(parent)
-    local status = ns.CreateNGLabel(panel, "Выберите цель в своей ролевой фазе.")
-    status:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -12)
-    local scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -45)
-    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -30, 88)
+    local targetBox = Section(panel, "Цель", ICONS.target)
+    targetBox:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -8)
+    targetBox:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -8, -8)
+    targetBox:SetHeight(58)
+    local status = ns.CreateNGLabel(targetBox, "Выберите цель в своей ролевой фазе.")
+    status:SetPoint("TOPLEFT", targetBox, "TOPLEFT", 14, -34)
+    status:SetPoint("TOPRIGHT", targetBox, "TOPRIGHT", -14, -34)
+
+    local xpBox = Section(panel, "Выдача опыта", ICONS.xp)
+    xpBox:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 8, 8)
+    xpBox:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
+    xpBox:SetHeight(66)
+
+    local statsBox = Section(panel, "Характеристики цели", ICONS.stats)
+    statsBox:SetPoint("TOPLEFT", targetBox, "BOTTOMLEFT", 0, -8)
+    statsBox:SetPoint("BOTTOMRIGHT", xpBox, "TOPRIGHT", 0, 8)
+    local scroll = CreateFrame("ScrollFrame", nil, statsBox, "ScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", statsBox, "TOPLEFT", 10, -34)
+    scroll:SetPoint("BOTTOMRIGHT", statsBox, "BOTTOMRIGHT", -28, 46)
+    if type(scroll.ScrollBar) == "table" and scroll.ScrollBar.SetHideIfUnscrollable then
+        scroll.ScrollBar:SetHideIfUnscrollable(true)
+    end
     local content = CreateFrame("Frame", nil, scroll); content:SetSize(430, 550); scroll:SetScrollChild(content)
-    local fields, statFields = {}, {}
+    local fields, statFields, groups = {}, {}, {}
     local schema = {
-        { "curHealth", "Текущие ОЗ", 10 },
-        { "maxHealth", "Максимальные ОЗ", 10 },
-        { "curEnergy", "Текущие ОЭ", 0 },
-        { "maxEnergy", "Максимальные ОЭ", 0 },
-        { "armor", "Броня", 0 },
-        { "speed", "Скорость", 10 },
-        { "weaponDice", "Кость урона", "1d6" },
-        { "blockDice", "Кость Блока", "1d4" },
+        { "Ресурсы", ICONS.resources, {
+            { "curHealth", "Текущие ОЗ", 10 },
+            { "maxHealth", "Максимальные ОЗ", 10 },
+            { "curEnergy", "Текущие ОЭ", 0 },
+            { "maxEnergy", "Максимальные ОЭ", 0 } } },
+        { "Защита и урон", ICONS.defense, {
+            { "armor", "Броня", 0 },
+            { "speed", "Скорость", 10 },
+            { "weaponDice", "Кость урона", "1d6" },
+            { "blockDice", "Кость Блока", "1d4" } } },
     }
     local y, dirty, shown, pending = 0, false, nil, nil
     local pendingPayload, sentAt, retries
+    -- Groups are laid out by Reflow: one column in a narrow window, two (shortest column first) in a wide one.
+    local blocks = {}
+    local function Group(title, icon)
+        local line = content:CreateTexture(nil, "ARTWORK")
+        line:SetColorTexture(1, 0.82, 0, 0.2)
+        line:SetHeight(1)
+        blocks[#blocks + 1] = { icon = Icon(content, icon, 14),
+            label = ns.CreateNGLabel(content, "|cffffd100" .. title .. "|r"), line = line, fields = {} }
+    end
     local function Field(key, label, isStat, default)
-        local text = ns.CreateNGLabel(content, label .. ":"); text:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y - 3)
+        local text = ns.CreateNGLabel(content, label .. ":")
         local box = ns.CreateNGEditBox(content, nil, 110, 22); box:SetAutoFocus(false)
-        box:SetPoint("TOPLEFT", content, "TOPLEFT", 210, -y); box:SetText(tostring(default or 0))
+        box:SetText(tostring(default or 0))
         box:HookScript("OnTextChanged", function(_, userInput) if userInput then dirty = true end end)
         fields[key] = box; if isStat then statFields[key] = true end
-        y = y + 28
+        local block = blocks[#blocks]
+        block.fields[#block.fields + 1] = { text = text, box = box }
     end
-    for _, item in ipairs(schema) do Field(item[1], item[2], false, item[3]) end
+    local function Reflow()
+        local width = math.max(300, tonumber((scroll.GetWidth and scroll:GetWidth())) or 430)
+        local columns = width >= 640 and 2 or 1
+        local columnWidth = math.floor(width / columns)
+        local heights = { 0, 0 }
+        for _, block in ipairs(blocks) do
+            local column = (columns == 2 and heights[2] < heights[1]) and 2 or 1
+            local x, top = (column - 1) * columnWidth, heights[column]
+            if top > 0 then top = top + 8 end
+            block.icon:ClearAllPoints(); block.icon:SetPoint("TOPLEFT", content, "TOPLEFT", x, -top - 1)
+            block.label:ClearAllPoints(); block.label:SetPoint("TOPLEFT", content, "TOPLEFT", x + 20, -top)
+            block.line:ClearAllPoints(); block.line:SetPoint("TOPLEFT", content, "TOPLEFT", x, -top - 18)
+            block.line:SetWidth(columnWidth - 16)
+            top = top + 26
+            for _, field in ipairs(block.fields) do
+                field.text:ClearAllPoints(); field.text:SetPoint("TOPLEFT", content, "TOPLEFT", x + 10, -top - 3)
+                field.box:ClearAllPoints()
+                field.box:SetPoint("TOPLEFT", content, "TOPLEFT", x + math.min(190, columnWidth - 130), -top)
+                top = top + 28
+            end
+            heights[column] = top
+        end
+        y = math.max(heights[1], heights[2])
+        content:SetSize(width, y + 10)
+    end
+    scroll:SetScript("OnSizeChanged", Reflow)
+    local baseFields = {}
+    for _, group in ipairs(schema) do
+        Group(group[1], group[2])
+        for _, item in ipairs(group[3]) do
+            Field(item[1], item[2], false, item[3])
+            baseFields[#baseFields + 1] = item
+        end
+    end
+    local REGISTRY_GROUPS = { { "combat", "Боевые бонусы", ICONS.combat }, { "mastery", "Мастерство", ICONS.mastery } }
     local function Registry()
-        for _, def in ipairs(R.registry) do
-            if (def.category == "combat" or def.category == "mastery") and not fields[def.key] then
-                Field(def.key, (R.GetLocalizedStatName and R.GetLocalizedStatName(def.key)) or def.name, true, 0)
+        for _, group in ipairs(REGISTRY_GROUPS) do
+            for _, def in ipairs(R.registry) do
+                if def.category == group[1] and not fields[def.key] then
+                    if not groups[group[1]] then groups[group[1]] = true; Group(group[2], group[3]) end
+                    Field(def.key, (R.GetLocalizedStatName and R.GetLocalizedStatName(def.key)) or def.name, true, 0)
+                end
             end
         end
-        content:SetHeight(y + 10)
+        Reflow()
     end
     Registry()
-    local save = ns.CreateNGButton(panel, "Сохранить цель", 150, 26); save:SetPoint("BOTTOMLEFT", 12, 14)
-    local refresh = ns.CreateNGButton(panel, "Обновить", 110, 26); refresh:SetPoint("LEFT", save, "RIGHT", 8, 0)
-    local round = ns.CreateNGButton(panel, "Новый раунд цели", 160, 26); round:SetPoint("LEFT", refresh, "RIGHT", 8, 0)
+    local save = ns.CreateNGButton(statsBox, "Сохранить цель", 150, 26); save:SetPoint("BOTTOMLEFT", statsBox, "BOTTOMLEFT", 12, 10)
+    local refresh = ns.CreateNGButton(statsBox, "Обновить", 110, 26); refresh:SetPoint("LEFT", save, "RIGHT", 8, 0)
+    local round = ns.CreateNGButton(statsBox, "Новый раунд цели", 160, 26); round:SetPoint("LEFT", refresh, "RIGHT", 8, 0)
     -- XP only from the DM; the server checks staff rights and replays the same requestId idempotently.
-    local xpLabel = ns.CreateNGLabel(panel, "Опыт:"); xpLabel:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 12, 54)
-    local xpAmount = ns.CreateNGEditBox(panel, nil, 50, 22); xpAmount:SetAutoFocus(false)
-    xpAmount:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 60, 50); xpAmount:SetText("")
-    local xpReason = ns.CreateNGEditBox(panel, nil, 210, 22); xpReason:SetAutoFocus(false)
-    xpReason:SetPoint("LEFT", xpAmount, "RIGHT", 8, 0); xpReason:SetText("")
-    local xpGrant = ns.CreateNGButton(panel, "Выдать XP", 100, 24); xpGrant:SetPoint("LEFT", xpReason, "RIGHT", 8, 0)
+    local xpLabel = ns.CreateNGLabel(xpBox, "Опыт:"); xpLabel:SetPoint("TOPLEFT", xpBox, "TOPLEFT", 14, -38)
+    local xpAmount = ns.CreateNGEditBox(xpBox, nil, 50, 22); xpAmount:SetAutoFocus(false)
+    xpAmount:SetPoint("TOPLEFT", xpBox, "TOPLEFT", 60, -34); xpAmount:SetText("")
+    local xpReasonLabel = ns.CreateNGLabel(xpBox, "Причина:"); xpReasonLabel:SetPoint("LEFT", xpAmount, "RIGHT", 12, 0)
+    local xpReason = ns.CreateNGEditBox(xpBox, nil, 210, 22); xpReason:SetAutoFocus(false)
+    xpReason:SetPoint("LEFT", xpReasonLabel, "RIGHT", 8, 0); xpReason:SetText("")
+    local xpGrant = ns.CreateNGButton(xpBox, "Выдать XP", 100, 24); xpGrant:SetPoint("LEFT", xpReason, "RIGHT", 8, 0)
     local xpWatch = CreateFrame("Frame", nil, panel)
-    local xpPending
+    NobleNextCharDB = NobleNextCharDB or {}
+    local xpPending = NobleNextCharDB.rpsPendingXpGrant
+    if xpPending then xpPending.sentAt, xpPending.retries = GetTime(), 0 end
+    local function SetXpPending(value)
+        xpPending = value
+        NobleNextCharDB.rpsPendingXpGrant = value
+    end
 
     local function Display(explicitTarget, force)
         local target, sourceLabel = explicitTarget, "Текущая цель"
@@ -98,7 +207,7 @@ local function Build(parent)
             status:SetText("Выберите доступную цель.")
             save:SetEnabled(false)
             round:SetEnabled(false)
-            xpGrant:SetEnabled(false)
+            xpGrant:SetEnabled(xpPending ~= nil and xpPending.retries > 2)
             return
         end
         target.targetGuid = targetGuid
@@ -112,11 +221,11 @@ local function Build(parent)
             sourceLabel,
             target.inSystem and "" or " (профиля нет, будет создан)",
             target.canEdit and "" or " - только просмотр"))
-        for _, item in ipairs(schema) do fields[item[1]]:SetText(tostring(target[item[1]] or item[3])) end
+        for _, item in ipairs(baseFields) do fields[item[1]]:SetText(tostring(target[item[1]] or item[3])) end
         for key in pairs(statFields) do fields[key]:SetText(tostring(target.stats and target.stats[key] or 0)) end
         save:SetEnabled(target.canEdit == true and not pending)
         round:SetEnabled(target.canEdit == true and target.isPlayer == true and not pending)
-        xpGrant:SetEnabled(target.isPlayer == true and not xpPending)
+        xpGrant:SetEnabled((xpPending ~= nil and xpPending.retries > 2) or (target.isPlayer == true and not xpPending))
     end
 
     local function Submit(beginRound)
@@ -150,7 +259,15 @@ local function Build(parent)
     round:SetScript("OnClick", function() Submit(true) end)
 
     local function GrantXp()
-        if xpPending or not shown or shown.isPlayer ~= true then return end
+        if xpPending then
+            local a = xpPending.args
+            xpPending.sentAt, xpPending.retries = GetTime(), 0
+            R.Send("DmGrantXp", a[1], a[2], a[3], a[4])
+            xpGrant:SetEnabled(false)
+            status:SetText("Проверка прежней выдачи опыта: ожидание подтверждения...")
+            return
+        end
+        if not shown or shown.isPlayer ~= true then return end
         local amount = tonumber(xpAmount:GetText())
         if not amount or amount < 1 or amount > 500 or amount % 1 ~= 0 then
             ns.PrintError("Опыт: целое число от 1 до 500."); return
@@ -160,28 +277,34 @@ local function Build(parent)
         local id = R.RequestId()
         local args = { UnitTargetGuid(shown), amount, reason, id }
         if R.Send("DmGrantXp", args[1], args[2], args[3], args[4]) then
-            xpPending = { id = id, args = args, sentAt = GetTime(), retries = 0, name = shown.name }
+            SetXpPending({ id = id, args = args, sentAt = GetTime(), retries = 0, name = shown.name })
             xpGrant:SetEnabled(false)
             status:SetText("Выдача опыта: ожидание ответа сервера...")
         end
     end
     xpGrant:SetScript("OnClick", GrantXp)
     xpWatch:SetScript("OnUpdate", function()
-        if not xpPending or GetTime() - xpPending.sentAt < 10 then return end
+        if not xpPending or xpPending.retries > 2 or GetTime() - xpPending.sentAt < 10 then return end
         xpPending.sentAt = GetTime(); xpPending.retries = xpPending.retries + 1
         if xpPending.retries <= 2 then
             local a = xpPending.args
             R.Send("DmGrantXp", a[1], a[2], a[3], a[4])
         else
-            xpPending = nil
-            xpGrant:SetEnabled(shown ~= nil and shown.isPlayer == true)
-            status:SetText("Статус выдачи опыта неизвестен. Проверьте уровень игрока перед повтором.")
+            xpGrant:SetEnabled(true)
+            xpGrant:SetText("Проверить выдачу")
+            status:SetText("Подтверждение не получено. Проверьте прежнюю выдачу тем же запросом.")
         end
     end)
     ns.Subscribe("RPS_XP_GRANT_RESULT", "rps_dm_xp", function(result)
         if not xpPending or result.requestId ~= xpPending.id then return end
+        if not result.ok and (result.code == "request_pending" or result.code == "pending_recovery"
+            or result.code == "receipt_incomplete") then
+            status:SetText("Выдача опыта ожидает подтверждения. Проверяется прежний запрос.")
+            return
+        end
         local name = xpPending.name or "Игрок"
-        xpPending = nil
+        SetXpPending(nil)
+        xpGrant:SetText("Выдать XP")
         xpGrant:SetEnabled(shown ~= nil and shown.isPlayer == true)
         if result.ok then
             xpReason:SetText("")

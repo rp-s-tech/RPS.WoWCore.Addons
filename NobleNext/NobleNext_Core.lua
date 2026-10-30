@@ -258,6 +258,9 @@ local MODULE_DEFAULTS = {
     ["Мастер"] = { id = "master", order = 400, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/Icons/inv_misc_book_09", slash = "/nnmaster" },
     ["Команды"] = { id = "commands", order = 410, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/Icons/inv_misc_book_11", slash = "/nn commands" },
     ["Трансмог"] = { id = "transmog", order = 500, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/inv_chest_cloth_30", slash = "/nntransmogsync" },
+    -- Ids keep the values derived from the title before these entries existed.
+    ["Бой 3d6"] = { id = "Бой_3d6", order = 510, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/INV_Misc_Dice_01" },
+    ["Предметы RP"] = { id = "Предметы_rp", order = 520, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/INV_MISC_RUNE_01" },
 }
 
 local function ResolveModuleId(nameOrId)

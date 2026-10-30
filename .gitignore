@@ -1,6 +1,11 @@
 # Local workspace materials; not part of the client repository.
 /dev/
-/tests/
+/tests/*
+!/tests/lua_runtime.py
+!/tests/test_rps_*.py
+!/tests/fixtures/
+/tests/fixtures/*
+!/tests/fixtures/rps_*.lua
 /Compatibility/
 
 # Python verification caches and environments.
