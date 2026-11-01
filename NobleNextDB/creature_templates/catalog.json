@@ -1,0 +1,452 @@
+{
+  "schemaVersion": 2,
+  "models": [
+    {
+      "raceId": 1,
+      "sex": 0,
+      "file": "human/human_male.lua",
+      "sha256": "c88cd6ac3caffd046360295150539dc0b9375eeb2bd78cf37cf6b68c10633979"
+    },
+    {
+      "raceId": 1,
+      "sex": 1,
+      "file": "human/human_female.lua",
+      "sha256": "beba4913394586f4d5b3e7509ea2b3569b59be7e1c3cbe61d966286d66a0c6ee"
+    },
+    {
+      "raceId": 2,
+      "sex": 0,
+      "file": "orc/orc_male.lua",
+      "sha256": "d97289ffbfbd22bd23ade3d71ec372029e3f0e5fcb6cb44259ccd51e231bb189"
+    },
+    {
+      "raceId": 2,
+      "sex": 1,
+      "file": "orc/orc_female.lua",
+      "sha256": "a3651cfa0f3f05ecfe473dc624f8e3784d6e0df58db9ca08ec14c8a8241eed8f"
+    },
+    {
+      "raceId": 3,
+      "sex": 0,
+      "file": "dwarf/dwarf_male.lua",
+      "sha256": "2e3ff9921038f785f59f020064fb041bb7bdec13c576a72c1efa3d65149f2ad6"
+    },
+    {
+      "raceId": 3,
+      "sex": 1,
+      "file": "dwarf/dwarf_female.lua",
+      "sha256": "2514bba7de45c52d4b9733c51f7e74660a2fa4f08dcc090aa765a86c909bde9d"
+    },
+    {
+      "raceId": 4,
+      "sex": 0,
+      "file": "night_elf/night_elf_male.lua",
+      "sha256": "dd0b01340d8d15b8a9deea90f7528c66c7852e7673a8de48aac5c1cc968add98"
+    },
+    {
+      "raceId": 4,
+      "sex": 1,
+      "file": "night_elf/night_elf_female.lua",
+      "sha256": "d03fe102ee7f29f5b543c78cc724b58099037a6219c04beb68b9405eb74c957a"
+    },
+    {
+      "raceId": 5,
+      "sex": 0,
+      "file": "undead/undead_male.lua",
+      "sha256": "b2a41216c13a0fdd28584e70f11c3d8eaa43c5b9608d727fc8aa5f35f83dce33"
+    },
+    {
+      "raceId": 5,
+      "sex": 1,
+      "file": "undead/undead_female.lua",
+      "sha256": "7c2874a2fdfc93ab36b8118852ed616f62566877f7c2d1716d85370d30f96698"
+    },
+    {
+      "raceId": 6,
+      "sex": 0,
+      "file": "tauren/tauren_male.lua",
+      "sha256": "59ce5c0728eac9c4195c284004a0e66c7584ef63995290c31c42d1a7e6f0674c"
+    },
+    {
+      "raceId": 6,
+      "sex": 1,
+      "file": "tauren/tauren_female.lua",
+      "sha256": "fc5b0df4198e618343f551021c8b96091429e9aa30acfb59ccda143ee1e82bbc"
+    },
+    {
+      "raceId": 7,
+      "sex": 0,
+      "file": "gnome/gnome_male.lua",
+      "sha256": "72f2729291d31973cf2e2e5ccb80a1e628e4e1b8790ccda4a7025127394fca63"
+    },
+    {
+      "raceId": 7,
+      "sex": 1,
+      "file": "gnome/gnome_female.lua",
+      "sha256": "22c6a6c5f476c07065300fdca677748f20e2f6e2bf00a3ad6c17221e97dc126a"
+    },
+    {
+      "raceId": 8,
+      "sex": 0,
+      "file": "troll/troll_male.lua",
+      "sha256": "c220dbcbc901cfd6a886297f82bfc0ff9c5a0945752e77f4262bf688b88aa3ab"
+    },
+    {
+      "raceId": 8,
+      "sex": 1,
+      "file": "troll/troll_female.lua",
+      "sha256": "10a49fbc71775a7cd6efed006ce56595d2916582e275c4e6d57ce9bc5d598cc4"
+    },
+    {
+      "raceId": 9,
+      "sex": 0,
+      "file": "goblin/goblin_male.lua",
+      "sha256": "b3b5df371c9972581a05871e340e694a39c39f1e4dd8bfa8c28b5140df15902e"
+    },
+    {
+      "raceId": 9,
+      "sex": 1,
+      "file": "goblin/goblin_female.lua",
+      "sha256": "87beaebcc4c61d046deafa8522739b2eb1cee2ec1e1c7ff5c2f057c8181e9268"
+    },
+    {
+      "raceId": 10,
+      "sex": 0,
+      "file": "blood_elf/blood_elf_male.lua",
+      "sha256": "36d49d93a37363625ef98ea45eb2a7af2a2a8d3a68ff9bc15c6be8810599ab15"
+    },
+    {
+      "raceId": 10,
+      "sex": 1,
+      "file": "blood_elf/blood_elf_female.lua",
+      "sha256": "a13c521b44b00e6e469bbdf695b937a8d438edba76c609bbd5caadc687a36e0a"
+    },
+    {
+      "raceId": 11,
+      "sex": 0,
+      "file": "draenei/draenei_male.lua",
+      "sha256": "13a734bb5ae683c4933bfefb3fae93a03756d600e16b8ae17ebd3d68324a458a"
+    },
+    {
+      "raceId": 11,
+      "sex": 1,
+      "file": "draenei/draenei_female.lua",
+      "sha256": "278bf1e5f9b8aa07ec349a7f92450eb867d11715fc2e99848af61219a7244b91"
+    },
+    {
+      "raceId": 22,
+      "sex": 0,
+      "file": "worgen/worgen_male.lua",
+      "sha256": "1ea0061c07e270b5514a7a8b9412ab6fb4e90881f09281651e5059d2a33abb95"
+    },
+    {
+      "raceId": 22,
+      "sex": 1,
+      "file": "worgen/worgen_female.lua",
+      "sha256": "385842c9a00d98825308aa64f276427beae2662d63d5564f35edd1c7f62543be"
+    },
+    {
+      "raceId": 24,
+      "sex": 0,
+      "file": "pandaren_neutral/pandaren_neutral_male.lua",
+      "sha256": "53739f9ddd44839ccb582a79e28ffd928f700f5f9892bfd288b00ba7d186f77d"
+    },
+    {
+      "raceId": 24,
+      "sex": 1,
+      "file": "pandaren_neutral/pandaren_neutral_female.lua",
+      "sha256": "30e16691f8dda5a54b1dfbe5f45c39904d60ef0f419120ebdb85de93df6935d6"
+    },
+    {
+      "raceId": 25,
+      "sex": 0,
+      "file": "pandaren_alliance/pandaren_alliance_male.lua",
+      "sha256": "167465a62bb4b12102a16042fcb47bb92987effa6f066dea64f1be5629a1b448"
+    },
+    {
+      "raceId": 25,
+      "sex": 1,
+      "file": "pandaren_alliance/pandaren_alliance_female.lua",
+      "sha256": "a1a39e7156b06b8d954373ef557877bc55ca910460fa2277ce18003cf1ded854"
+    },
+    {
+      "raceId": 26,
+      "sex": 0,
+      "file": "pandaren_horde/pandaren_horde_male.lua",
+      "sha256": "ca025f080da123373cf88cba35b2c072693d5c83e3a9a94970fb4eabc2886c47"
+    },
+    {
+      "raceId": 26,
+      "sex": 1,
+      "file": "pandaren_horde/pandaren_horde_female.lua",
+      "sha256": "05497cb4d8fbe26a8702c31d473186ffa06816fdd027f06a88c4e86ce47e6879"
+    },
+    {
+      "raceId": 27,
+      "sex": 0,
+      "file": "nightborne/nightborne_male.lua",
+      "sha256": "33e1e6f9f9c85cdd1dd9d026e11e656e474fc2c648a4bcd5fe0c871376a683bd"
+    },
+    {
+      "raceId": 27,
+      "sex": 1,
+      "file": "nightborne/nightborne_female.lua",
+      "sha256": "f4bbd1f12f68750d5e97b6fe6cf603bac54e64fe65a19b123da488888fd18100"
+    },
+    {
+      "raceId": 28,
+      "sex": 0,
+      "file": "highmountain_tauren/highmountain_tauren_male.lua",
+      "sha256": "d5637aee7d35c57aa223edbe6c787a24669ba60adef2417b21236cbeb0bc3b4c"
+    },
+    {
+      "raceId": 28,
+      "sex": 1,
+      "file": "highmountain_tauren/highmountain_tauren_female.lua",
+      "sha256": "237e43804da96a6b3c332c7c3f8e54045211a2dcf73143393ac70eb1806d009e"
+    },
+    {
+      "raceId": 29,
+      "sex": 0,
+      "file": "void_elf/void_elf_male.lua",
+      "sha256": "4b25d2a85f2a31d9cc5e2a0e6e4c524f30970400a54e59fb4df64a88f0a4d345"
+    },
+    {
+      "raceId": 29,
+      "sex": 1,
+      "file": "void_elf/void_elf_female.lua",
+      "sha256": "73882e71eb95df2e8bb91b9b4631b684cb15f54bed6eb6def961e8f24df743ed"
+    },
+    {
+      "raceId": 30,
+      "sex": 0,
+      "file": "lightforged_draenei/lightforged_draenei_male.lua",
+      "sha256": "68accbfb050e7539d69fc50b45b8d502ce43552fe517dfbccc0275983a3bf988"
+    },
+    {
+      "raceId": 30,
+      "sex": 1,
+      "file": "lightforged_draenei/lightforged_draenei_female.lua",
+      "sha256": "6eb151ad91a4db0e93866303b73c60a0e751585a1d64ac918068a2c9cda3cb11"
+    },
+    {
+      "raceId": 31,
+      "sex": 0,
+      "file": "zandalari_troll/zandalari_troll_male.lua",
+      "sha256": "b2a1592727187ebae9eed3e03044572eb320394a5c79baff75d7c13456bfe622"
+    },
+    {
+      "raceId": 31,
+      "sex": 1,
+      "file": "zandalari_troll/zandalari_troll_female.lua",
+      "sha256": "e622a820a875b81b18c5b86e1a96e3333d5772164201adcdc28ac962876f6761"
+    },
+    {
+      "raceId": 32,
+      "sex": 0,
+      "file": "kul_tiran/kul_tiran_male.lua",
+      "sha256": "ccfa63da743ec02d864f90eb17915cd87b49272eed4ecf54dd8aae690cfb5a48"
+    },
+    {
+      "raceId": 32,
+      "sex": 1,
+      "file": "kul_tiran/kul_tiran_female.lua",
+      "sha256": "a1d6d4e914642c692a08a34fb16f19b834f2c5815b06208c68b87cb945556d07"
+    },
+    {
+      "raceId": 34,
+      "sex": 0,
+      "file": "dark_iron_dwarf/dark_iron_dwarf_male.lua",
+      "sha256": "53c6410cb223cdf09a196b434fc105cc1cafa76c55648ec4a9c2fb554f6bb5fb"
+    },
+    {
+      "raceId": 34,
+      "sex": 1,
+      "file": "dark_iron_dwarf/dark_iron_dwarf_female.lua",
+      "sha256": "c5aa659f47e060e9e2e4c82b199cb7ed4601c34426c7898220fe67c8d621b587"
+    },
+    {
+      "raceId": 35,
+      "sex": 0,
+      "file": "vulpera/vulpera_male.lua",
+      "sha256": "313e8b731860cad5a2ee9357ea240e7f094a21ea567a66c126c3f50f7b1fc791"
+    },
+    {
+      "raceId": 35,
+      "sex": 1,
+      "file": "vulpera/vulpera_female.lua",
+      "sha256": "e0366ca72329905c87b66612fa9a89aef3f764be980aeaf335c6fe8c3dd3469b"
+    },
+    {
+      "raceId": 36,
+      "sex": 0,
+      "file": "maghar_orc/maghar_orc_male.lua",
+      "sha256": "c5942b21ad5ec888693500224f017d517c0fb0cedaaf6b7e0c25d638268e3dd2"
+    },
+    {
+      "raceId": 36,
+      "sex": 1,
+      "file": "maghar_orc/maghar_orc_female.lua",
+      "sha256": "8b8f25ec88e425e2fd8448aeffa782628fcfbf2b472b0a46f0a934651aec3a22"
+    },
+    {
+      "raceId": 37,
+      "sex": 0,
+      "file": "mechagnome/mechagnome_male.lua",
+      "sha256": "b53fd35d149f2b9290af793f7af85c1c8b81b1928a023d7ca14c9cef73e762aa"
+    },
+    {
+      "raceId": 37,
+      "sex": 1,
+      "file": "mechagnome/mechagnome_female.lua",
+      "sha256": "23e4ba9c0d46e61f583c9ee645689bef148069b17bf11708822ec3b833932ee5"
+    },
+    {
+      "raceId": 52,
+      "sex": 0,
+      "file": "dracthyr_alliance/dracthyr_alliance_male.lua",
+      "sha256": "1621ac741830c639ea16758dbc111ce6f3ac1487cdedfd6de821bdfd76ec4c79"
+    },
+    {
+      "raceId": 52,
+      "sex": 1,
+      "file": "dracthyr_alliance/dracthyr_alliance_female.lua",
+      "sha256": "c4aec99b659044cb2966d79d7f02f1043c28387b3ef29c781e61ac5cc0a3fdec"
+    },
+    {
+      "raceId": 70,
+      "sex": 0,
+      "file": "dracthyr_horde/dracthyr_horde_male.lua",
+      "sha256": "5c5e20346d2a97617e2aaf6a66d0a9dc9b35a64b86a3d22394c4c7faf03657a6"
+    },
+    {
+      "raceId": 70,
+      "sex": 1,
+      "file": "dracthyr_horde/dracthyr_horde_female.lua",
+      "sha256": "167e8b6cf55b799856b23d589f489b08cecc23a4a2adb445599a4ebdbac759e4"
+    },
+    {
+      "raceId": 84,
+      "sex": 0,
+      "file": "earthen_horde/earthen_horde_male.lua",
+      "sha256": "aa994998e5a2739bb33a3294b3adbab4555926869fb08492deef46f405a3521a"
+    },
+    {
+      "raceId": 84,
+      "sex": 1,
+      "file": "earthen_horde/earthen_horde_female.lua",
+      "sha256": "adc71ac36f07885e36e62842a4c017def43c235610e220374b7a2fc7a5037170"
+    },
+    {
+      "raceId": 85,
+      "sex": 0,
+      "file": "earthen_alliance/earthen_alliance_male.lua",
+      "sha256": "f52f1a7577b6f4749a5807a8c99a8d46288bd15fd8dc50f28172631c5d606a41"
+    },
+    {
+      "raceId": 85,
+      "sex": 1,
+      "file": "earthen_alliance/earthen_alliance_female.lua",
+      "sha256": "bd4b9b6bd457ffa5ad1cb0147409501ca1291febb0f65affd1d546d6fd4e0225"
+    },
+    {
+      "raceId": 91,
+      "sex": 0,
+      "file": "haranir_horde/haranir_horde_male.lua",
+      "sha256": "4c35dbc2755dfb1ba52b058ac73c67371c6e539439609e5374162bed42611ab0"
+    },
+    {
+      "raceId": 91,
+      "sex": 1,
+      "file": "haranir_horde/haranir_horde_female.lua",
+      "sha256": "a9aa36f60d2aadca00369d6bc45bb1a76fa63e12a2eb9a891c965d4175227cd5"
+    }
+  ],
+  "source": {
+    "schemaVersion": 2,
+    "build_id": 63534,
+    "locale": "ruRU",
+    "package_checksum": "d63689a5330474afe79e460a64e1c7a5190b631279d0266d3fe4e365b18538f5",
+    "source": "site-reference-package",
+    "build_id_origin": "site-package-exporter-inferred"
+  },
+  "selection": {
+    "schemaVersion": 1,
+    "raceIds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      22,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      35,
+      36,
+      37,
+      52,
+      70,
+      84,
+      85,
+      91
+    ],
+    "observedWorldRaces": [
+      1,
+      2,
+      3,
+      7,
+      91
+    ],
+    "playableRaceIds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      22,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      35,
+      36,
+      37,
+      52,
+      70,
+      84,
+      85
+    ],
+    "policy": "playableRaceIds union observed world outfit races, intersect effective reference race models, unique by race_id",
+    "source": "noble-site/common/services/CustomNpcRaceCatalog.php",
+    "sourceSha256": "accd2146b26d0935e70f116304a5755c4abf8c75321b6a63960fd7ac85871528",
+    "referenceSource": "db",
+    "referencePackageChecksum": "d63689a5330474afe79e460a64e1c7a5190b631279d0266d3fe4e365b18538f5",
+    "observedAt": "2026-11-01T18:20:51Z"
+  }
+}

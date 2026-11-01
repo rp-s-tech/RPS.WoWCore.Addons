@@ -80,10 +80,11 @@ ns.CommandDefinitions.RegisterMany({
             cnpcAlias({ "apply" }),
         },
         serverPath = "customnpc apply",
-        syntax = ".customnpc apply <variation>",
-        description = "Применить вариацию модели выделенного Custom NPC (после `.npc select`).",
+        syntax = ".customnpc apply <variation> [key]",
+        description = "Применить образ своего NPC, выделенного через `.npc select` в текущей карте и фазе. Необязательный ключ проверяет совпадение выбора.",
         args = {
             { name = "variation", type = "number", required = true },
+            { name = "key", type = "string", required = false },
         },
         destructive = true,
         console = false,

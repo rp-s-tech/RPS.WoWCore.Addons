@@ -1,5 +1,5 @@
 {
-  "packages": ["NobleNext", "NobleNextLib", "NobleNextDM", "NobleNextGM"],
+  "packages": ["NobleNext", "NobleNextLib", "NobleNextDM", "NobleNextGM", "NobleNextDB"],
   "extensions": [".lua", ".xml", ".toc"],
   "excluded_directories": ["LibStub"],
   "allowed_ranges": [[32, 126], [1040, 1103]],

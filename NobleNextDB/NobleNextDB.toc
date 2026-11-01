@@ -1,0 +1,69 @@
+## Interface: 120005, 120007, 120100, 120105
+## Title: NobleNextDB
+## Notes: Appearance reference catalog for NobleNext.
+## Author: Role Play Systems & Noblegarden
+## Version: 0.3.182
+## LoadOnDemand: 1
+## X-NobleNext-Data: creature-templates-v2
+creature_templates/Manifest.lua
+Init.lua
+creature_templates/human/human_male.lua
+creature_templates/human/human_female.lua
+creature_templates/orc/orc_male.lua
+creature_templates/orc/orc_female.lua
+creature_templates/dwarf/dwarf_male.lua
+creature_templates/dwarf/dwarf_female.lua
+creature_templates/night_elf/night_elf_male.lua
+creature_templates/night_elf/night_elf_female.lua
+creature_templates/undead/undead_male.lua
+creature_templates/undead/undead_female.lua
+creature_templates/tauren/tauren_male.lua
+creature_templates/tauren/tauren_female.lua
+creature_templates/gnome/gnome_male.lua
+creature_templates/gnome/gnome_female.lua
+creature_templates/troll/troll_male.lua
+creature_templates/troll/troll_female.lua
+creature_templates/goblin/goblin_male.lua
+creature_templates/goblin/goblin_female.lua
+creature_templates/blood_elf/blood_elf_male.lua
+creature_templates/blood_elf/blood_elf_female.lua
+creature_templates/draenei/draenei_male.lua
+creature_templates/draenei/draenei_female.lua
+creature_templates/worgen/worgen_male.lua
+creature_templates/worgen/worgen_female.lua
+creature_templates/pandaren_neutral/pandaren_neutral_male.lua
+creature_templates/pandaren_neutral/pandaren_neutral_female.lua
+creature_templates/pandaren_alliance/pandaren_alliance_male.lua
+creature_templates/pandaren_alliance/pandaren_alliance_female.lua
+creature_templates/pandaren_horde/pandaren_horde_male.lua
+creature_templates/pandaren_horde/pandaren_horde_female.lua
+creature_templates/nightborne/nightborne_male.lua
+creature_templates/nightborne/nightborne_female.lua
+creature_templates/highmountain_tauren/highmountain_tauren_male.lua
+creature_templates/highmountain_tauren/highmountain_tauren_female.lua
+creature_templates/void_elf/void_elf_male.lua
+creature_templates/void_elf/void_elf_female.lua
+creature_templates/lightforged_draenei/lightforged_draenei_male.lua
+creature_templates/lightforged_draenei/lightforged_draenei_female.lua
+creature_templates/zandalari_troll/zandalari_troll_male.lua
+creature_templates/zandalari_troll/zandalari_troll_female.lua
+creature_templates/kul_tiran/kul_tiran_male.lua
+creature_templates/kul_tiran/kul_tiran_female.lua
+creature_templates/dark_iron_dwarf/dark_iron_dwarf_male.lua
+creature_templates/dark_iron_dwarf/dark_iron_dwarf_female.lua
+creature_templates/vulpera/vulpera_male.lua
+creature_templates/vulpera/vulpera_female.lua
+creature_templates/maghar_orc/maghar_orc_male.lua
+creature_templates/maghar_orc/maghar_orc_female.lua
+creature_templates/mechagnome/mechagnome_male.lua
+creature_templates/mechagnome/mechagnome_female.lua
+creature_templates/dracthyr_alliance/dracthyr_alliance_male.lua
+creature_templates/dracthyr_alliance/dracthyr_alliance_female.lua
+creature_templates/dracthyr_horde/dracthyr_horde_male.lua
+creature_templates/dracthyr_horde/dracthyr_horde_female.lua
+creature_templates/earthen_horde/earthen_horde_male.lua
+creature_templates/earthen_horde/earthen_horde_female.lua
+creature_templates/earthen_alliance/earthen_alliance_male.lua
+creature_templates/earthen_alliance/earthen_alliance_female.lua
+creature_templates/haranir_horde/haranir_horde_male.lua
+creature_templates/haranir_horde/haranir_horde_female.lua

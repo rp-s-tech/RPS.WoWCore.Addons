@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 2,
+  "build_id": 63534,
+  "locale": "ruRU",
+  "package_checksum": "d63689a5330474afe79e460a64e1c7a5190b631279d0266d3fe4e365b18538f5",
+  "source": "site-reference-package",
+  "build_id_origin": "site-package-exporter-inferred",
+  "files": {
+    "build.csv": {
+      "bytes": 71,
+      "sha256": "90836a2b3f94a6c02fef24470e6b13734e9c2a0ca56e972d008f7268b82b8a5a"
+    },
+    "classes.csv": {
+      "bytes": 1524,
+      "sha256": "1c85978ecbdf4926de40baa4f0aee9f359ddc157a9ef3cbf20bb152a6eacf1d8"
+    },
+    "customization_choices.csv": {
+      "bytes": 551956,
+      "sha256": "a86b409c7c8a50557efef615a9fff3e576665dc7319bba0cb6673b7de55da9b1"
+    },
+    "customization_options.csv": {
+      "bytes": 105284,
+      "sha256": "a4f352e71203757ba44bef9a087bf0d63621c0f6e82b369dd568ec4e3ce32dfa"
+    },
+    "customization_requirement_choices.csv": {
+      "bytes": 43494,
+      "sha256": "fb11a7fc509d3cbc15faa3f66584b0fd33d139bd96948b0d601ac4490837daea"
+    },
+    "customization_requirements.csv": {
+      "bytes": 63674,
+      "sha256": "c3dec8002ecc51bddfa760e3b9a712594bac47ba64463141733b4d49cc48ca2d"
+    },
+    "race_models.csv": {
+      "bytes": 8910,
+      "sha256": "82ba6f7c4dd1ac9e89a201a72135209dc1ef6bc68d4a0563f908fc5ab4d92b49"
+    },
+    "source_manifest.csv": {
+      "bytes": 2355,
+      "sha256": "523f15fe036aeeef2468147a159837c1b67ee92d9d96ace01eb35cccbbf3f1da"
+    }
+  },
+  "db2_sources": [
+    {
+      "filename": "ChrRaces.csv",
+      "tier": "required",
+      "bytes": "22784",
+      "rows": "58",
+      "sha256": "f4e5416c298dba0abba0b6aac841526e5e789744bb92129d9b1b43363c04aa0d"
+    },
+    {
+      "filename": "ChrRaceXChrModel.csv",
+      "tier": "required",
+      "bytes": "1608",
+      "rows": "116",
+      "sha256": "5fea8075d91f2740f9520e0507c7e04bd8d75247c17161776168237d5e8e9f93"
+    },
+    {
+      "filename": "ChrModel.csv",
+      "tier": "required",
+      "bytes": "8075",
+      "rows": "107",
+      "sha256": "f90fc8440819c7b176d58b5385991a38d5553f1d7c0b9eb4422c96de27955e61"
+    },
+    {
+      "filename": "ChrClasses.csv",
+      "tier": "required",
+      "bytes": "10982",
+      "rows": "15",
+      "sha256": "8f6012366ac21d3ac0ecd659d48d8e74e9be2cd725d0ea6ecc6d8ec682939380"
+    },
+    {
+      "filename": "ChrCustomization.csv",
+      "tier": "required",
+      "bytes": "3134",
+      "rows": "76",
+      "sha256": "cc926ee7ebd4f0d64ea50df6c44f120b5ad8bac5f58b4034af0962f895ff59b5"
+    },
+    {
+      "filename": "ChrCustomizationCategory.csv",
+      "tier": "required",
+      "bytes": "3506",
+      "rows": "59",
+      "sha256": "96bf69f168bf94c4aa9c22fb4124c1c4d81284177f4dc33d45bff784e0f7bc37"
+    },
+    {
+      "filename": "ChrCustomizationOption.csv",
+      "tier": "required",
+      "bytes": "61122",
+      "rows": "1147",
+      "sha256": "369d766eacd816c5d0fa77cf9c5430c048e25945a5e2edfaca5f01fad5021c70"
+    },
+    {
+      "filename": "ChrCustomizationChoice.csv",
+      "tier": "required",
+      "bytes": "467717",
+      "rows": "10046",
+      "sha256": "fb214b2d5ff420b7610009707ac129585f47e4a699587d439723a2f8af5201c1"
+    },
+    {
+      "filename": "ChrCustomizationReq.csv",
+      "tier": "required",
+      "bytes": "59191",
+      "rows": "1117",
+      "sha256": "f5c26872af15bca980d8decdde1c2c2d45d53c1c394c9534e85eabc92cb85e80"
+    },
+    {
+      "filename": "ChrCustomizationReqChoice.csv",
+      "tier": "required",
+      "bytes": "29135",
+      "rows": "2050",
+      "sha256": "c13d8c7bd44dd3e30574627b4c88975d2e2bf20732da0daf47aa4bcd06063861"
+    },
+    {
+      "filename": "Item.csv",
+      "tier": "required",
+      "bytes": "8963894",
+      "rows": "210608",
+      "sha256": "cce405a30bc48976d25a8b1306d0e9a216e97d68c7edb33e3d8d73578a46399b"
+    },
+    {
+      "filename": "ItemSparse.csv",
+      "tier": "required",
+      "bytes": "55559170",
+      "rows": "172787",
+      "sha256": "054dab6aa69cf05ba390ba9a9e50fa346660d3b9ebec04499f61dbb82bbb1051"
+    },
+    {
+      "filename": "ItemAppearance.csv",
+      "tier": "required",
+      "bytes": "2071204",
+      "rows": "63356",
+      "sha256": "f2e2127bcb76c396e06f77b81b328553d0b8e6a102ed1324a3fe63f6d4d73083"
+    },
+    {
+      "filename": "ItemModifiedAppearance.csv",
+      "tier": "required",
+      "bytes": "4270371",
+      "rows": "157411",
+      "sha256": "e64fa1b8015bd32e81f70f1ad3880cbb732208b2dee1152b11413673142aa8cd"
+    },
+    {
+      "filename": "ItemModifiedAppearanceExtra.csv",
+      "tier": "required",
+      "bytes": "25213",
+      "rows": "1126",
+      "sha256": "518dd85041f29908a99ba7af33f8d38c09f32c68b3139af29b27be6dc2fb427f"
+    },
+    {
+      "filename": "ChrCustomizationElement.csv",
+      "tier": "extended",
+      "bytes": "1466945",
+      "rows": "35791",
+      "sha256": "46c90d1dbd33a84c756f308ca0d6613b2daf91e1ca2805d5555c611ec5a44a7b"
+    },
+    {
+      "filename": "CreatureDisplayInfo.csv",
+      "tier": "extended",
+      "bytes": "9958454",
+      "rows": "119495",
+      "sha256": "5d15103596e15635bf2969b3a33a032faeca9ab623a58e7041f0da224314cd22"
+    },
+    {
+      "filename": "CreatureDisplayInfoExtra.csv",
+      "tier": "extended",
+      "bytes": "1410850",
+      "rows": "53419",
+      "sha256": "045c5b7a7ecb2abacbd2a0e4e6d835d5b8b235eabdfa3f5308ecf3bf2a3aa345"
+    },
+    {
+      "filename": "CreatureModelData.csv",
+      "tier": "extended",
+      "bytes": "1826117",
+      "rows": "11567",
+      "sha256": "be1c27991ff80757d91488a4dd79195736441d420ba8319142bb23571b4ef2ca"
+    },
+    {
+      "filename": "CreatureDisplayInfoOption.csv",
+      "tier": "extended",
+      "bytes": "14178562",
+      "rows": "645139",
+      "sha256": "459beb9e70ad26f0eab37666ec0edf6d2a06dfa6d6ef16777baf54d932ceedd5"
+    },
+    {
+      "filename": "NPCModelItemSlotDisplayInfo.csv",
+      "tier": "extended",
+      "bytes": "8178913",
+      "rows": "368268",
+      "sha256": "9c96c7a168cee4360e71ceaae8e1362be1378965e5ddee20fdf11a62b77ffb85"
+    }
+  ],
+  "selection": {
+    "schemaVersion": 1,
+    "raceIds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      22,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      35,
+      36,
+      37,
+      52,
+      70,
+      84,
+      85,
+      91
+    ],
+    "observedWorldRaces": [
+      1,
+      2,
+      3,
+      7,
+      91
+    ],
+    "playableRaceIds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      22,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      35,
+      36,
+      37,
+      52,
+      70,
+      84,
+      85
+    ],
+    "policy": "playableRaceIds union observed world outfit races, intersect effective reference race models, unique by race_id",
+    "source": "noble-site/common/services/CustomNpcRaceCatalog.php",
+    "sourceSha256": "accd2146b26d0935e70f116304a5755c4abf8c75321b6a63960fd7ac85871528",
+    "referenceSource": "db",
+    "referencePackageChecksum": "d63689a5330474afe79e460a64e1c7a5190b631279d0266d3fe4e365b18538f5",
+    "observedAt": "2026-11-01T18:20:51Z"
+  }
+}
