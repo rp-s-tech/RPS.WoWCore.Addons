@@ -652,10 +652,10 @@ local function InitMasterModule(parent)
         end
     end
 
-    local WpSection = CreateSection(ToolsTab, "Маршрут NPC", 620, 166)
+    local WpSection = CreateSection(ToolsTab, "Маршрут NPC и фиксация сцены", 620, 202)
     WpSection:SetPoint("TOPLEFT", HistSection, "BOTTOMLEFT", 0, -10)
 
-    local WpLabel = ns.CreateNGLabel(WpSection, "Точки добавляются в текущей позиции персонажа.")
+    local WpLabel = ns.CreateNGLabel(WpSection, "Точки временные до команды «Запечь» и подтверждения сервера.")
     WpLabel:SetPoint("TOPLEFT", WpSection, "TOPLEFT", 10, -34)
 
     local WpMoveBtn = ns.CreateNGButton(WpSection, "+ Бег", 100, 24)
@@ -682,6 +682,9 @@ local function InitMasterModule(parent)
         if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
         SendGmCommand(".wpgo")
     end)
+    local WpEditBtn = ns.CreateNGButton(WpSection, "Точки маршрута", 150, 24)
+    WpEditBtn:SetPoint("TOPLEFT", WpGoBtn, "TOPRIGHT", 6, 0)
+    WpEditBtn:SetScript("OnClick", function() ns.ShowModule("Точки маршрута") end)
 
     local WpWaitLabel = ns.CreateNGLabel(WpSection, "Пауза, секунды:")
     WpWaitLabel:SetPoint("TOPLEFT", WpSection, "TOPLEFT", 10, -98)
@@ -709,6 +712,22 @@ local function InitMasterModule(parent)
         local id = NumberInput(WpEmoteBox, "ID анимации", 1, 4294967295, true)
         if seconds and id then SendGmCommand(".wpemote " .. id .. " " .. seconds) end
     end)
+
+    local BakeNpcBtn = ns.CreateNGButton(WpSection, "Запечь НИП", 170, 24)
+    BakeNpcBtn:SetPoint("TOPLEFT", WpSection, "TOPLEFT", 10, -164)
+    BakeNpcBtn:SetScript("OnClick", function()
+        if not IsNpcTarget() then ns.PrintError("Возьмите в цель временного NPC."); return end
+        SendGmCommand(".rps persist npc-bake")
+    end)
+    local BakeRouteBtn = ns.CreateNGButton(WpSection, "Запечь маршрут", 170, 24)
+    BakeRouteBtn:SetPoint("LEFT", BakeNpcBtn, "RIGHT", 6, 0)
+    BakeRouteBtn:SetScript("OnClick", function()
+        if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC с маршрутом."); return end
+        SendGmCommand(".rps persist wp-bake")
+    end)
+    local BakeGoBtn = ns.CreateNGButton(WpSection, "Запечь объект", 170, 24)
+    BakeGoBtn:SetPoint("LEFT", BakeRouteBtn, "RIGHT", 6, 0)
+    BakeGoBtn:SetScript("OnClick", function() SendGmCommand(".rps persist go-bake") end)
 
     -- -----------------------------------------------------------------------
     -- Tab: Time & Weather

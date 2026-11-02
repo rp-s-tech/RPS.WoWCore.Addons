@@ -9,8 +9,10 @@
 Bootstrap.lua
 CommandDefinitions/Pet.lua
 CommandDefinitions/Npccontrol.lua
+CommandDefinitions/Waypoints.lua
 CommandDefinitions/RpPhase.lua
 GM/Army/Init.lua
+GM/Waypoints/Editor.lua
 GM/Master/Init.lua
 GM/Pet/Init.lua
 GM/Phase/Panel.lua

@@ -794,12 +794,27 @@ function ns.AIOHandle(handlerName, methodName, ...)
     return true
 end
 
+local persistenceRoutes = {
+    { "^npc%s+set%s+phase%s+", "npc-phase " },
+    { "^npc%s+set%s+phasegroup%s+", "npc-phasegroup " },
+    { "^gobject%s+set%s+phase%s+", "go-phase " },
+    { "^wp%s+add%s+", "wp-add " },
+}
+
 local function normalizeGmCommand(cmd)
     if cmd == nil then return nil end
     cmd = tostring(cmd):match("^%s*(.-)%s*$")
     if cmd == "" then return nil end
     cmd = cmd:gsub("^[%./]+", "")
     if cmd == "" then return nil end
+    -- Use the isolated server extension for operations with explicit persistence.
+    for _, route in ipairs(persistenceRoutes) do
+        local _, last = cmd:lower():find(route[1])
+        if last then return ".rps persist " .. route[2] .. cmd:sub(last + 1) end
+    end
+    if cmd:lower():match("^wp%s+add$") then return ".rps persist wp-add" end
+    local key = cmd:match("^[Cc][Nn][Pp][Cc]%s+[Ss][Pp][Aa][Ww][Nn]%s+(%S+)$")
+    if key and key:lower() ~= "temp" then return ".rps persist cnpc-spawn " .. key end
     return "." .. cmd
 end
 

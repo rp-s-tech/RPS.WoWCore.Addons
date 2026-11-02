@@ -44,13 +44,19 @@ local function InitWaypointsModule(parent)
     f:Hide()
 
     local Title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    Title:SetText("Маршруты NPC")
+    Title:SetText("Маршруты НИП и фиксация сцены")
     Title:SetTextColor(ns.COLORS.goldRaw.r, ns.COLORS.goldRaw.g, ns.COLORS.goldRaw.b)
     Title:SetPoint("TOP", f, "TOP", 0, -10)
 
-    local RecordSection = ns.CreateNGSection(f, "Запись маршрута", nil, 220)
-    RecordSection:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -40)
-    RecordSection:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -40)
+    local LifetimeLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    LifetimeLabel:SetText("Точки временные, пока вы не нажали «Запечь маршрут» и не получили подтверждение сервера.")
+    LifetimeLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 12, -34)
+    LifetimeLabel:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -34)
+    LifetimeLabel:SetWordWrap(true)
+
+    local RecordSection = ns.CreateNGSection(f, "Запись и фиксация маршрута", nil, 255)
+    RecordSection:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -70)
+    RecordSection:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -70)
 
     local btnY = -36
 
@@ -69,11 +75,11 @@ local function InitWaypointsModule(parent)
     end)
 
     local ClearBtn = ns.CreateNGButton(RecordSection, "Очистить маршрут", 130, 26)
-    Describe(ClearBtn, "Остановить маршрут выбранного NPC и удалить все записанные точки.")
+    Describe(ClearBtn, "Остановить маршрут и очистить временные точки выбранного НИПа. Ранее сохранённый снимок остаётся в БД.")
     ClearBtn:SetPoint("TOPLEFT", WalkBtn, "TOPRIGHT", 15, 0)
     ClearBtn:SetScript("OnClick", function()
         ns.Confirm.Show({
-            text = "Удалить все точки маршрута выбранного NPC?",
+            text = "Очистить временные точки выбранного НИПа? Ранее сохранённый снимок останется в БД.",
             onAccept = function()
                 SendGmCommand(".wpclear")
             end,
@@ -135,11 +141,28 @@ local function InitWaypointsModule(parent)
     end)
 
     local StopBtn = ns.CreateNGButton(RecordSection, "Остановить", 140, 30)
-    Describe(StopBtn, "Остановить выполнение маршрута, сохранив записанные точки.")
+    Describe(StopBtn, "Остановить выполнение маршрута. Временные точки остаются в памяти, ранее запечённый маршрут остаётся в БД.")
     StopBtn:SetPoint("TOPLEFT", GoBtn, "TOPRIGHT", 20, 0)
     StopBtn:SetScript("OnClick", function()
         SendGmCommand(".wpstop")
     end)
+    local EditBtn = ns.CreateNGButton(RecordSection, "Точки маршрута", 140, 30)
+    EditBtn:SetPoint("TOPLEFT", StopBtn, "TOPRIGHT", 20, 0)
+    Describe(EditBtn, "Посмотреть все точки, паузы и эмоции НИПа, удалить промежуточные действия или поменять их местами.")
+    EditBtn:SetScript("OnClick", function() ns.ShowModule("Точки маршрута") end)
+
+    local BakeNpc = ns.CreateNGButton(RecordSection, "Запечь НИП", 130, 26)
+    BakeNpc:SetPoint("TOPLEFT", GoBtn, "BOTTOMLEFT", 0, -10)
+    Describe(BakeNpc, "Сделать выбранного временного НИПа постоянным вместе с его маршрутом. Исходник заменяется после подтверждения записи.")
+    BakeNpc:SetScript("OnClick", function() SendGmCommand(".rps persist npc-bake") end)
+    local BakeRoute = ns.CreateNGButton(RecordSection, "Запечь маршрут", 130, 26)
+    BakeRoute:SetPoint("LEFT", BakeNpc, "RIGHT", 15, 0)
+    Describe(BakeRoute, "Сохранить бег, шаг, паузы и эмоции выбранного НИПа. Временный НИП также станет постоянным. Чтобы удалить сохранённый маршрут, очистите точки и запеките снова.")
+    BakeRoute:SetScript("OnClick", function() SendGmCommand(".rps persist wp-bake") end)
+    local BakeGo = ns.CreateNGButton(RecordSection, "Запечь объект", 130, 26)
+    BakeGo:SetPoint("LEFT", BakeRoute, "RIGHT", 15, 0)
+    Describe(BakeGo, "Сделать постоянным последний объект из .gobject add temp. Для другого используйте .rps persist go-list и go-bake с его ID.")
+    BakeGo:SetScript("OnClick", function() SendGmCommand(".rps persist go-bake") end)
 
     local StateSection = ns.CreateNGSection(f, "Стойка NPC", nil, 90)
     StateSection:SetPoint("TOPLEFT", RecordSection, "BOTTOMLEFT", 0, -15)
@@ -175,4 +198,4 @@ C_Timer.After(0, function()
     ns.RegisterSlashCommand("NNWAYPOINTS", function() ns.ShowModule("Вейпоинты") end, "nnwaypoints")
 end)
 
-ns.RegisterModule("Вейпоинты", InitWaypointsModule, "Маршруты NPC")
+ns.RegisterModule("Вейпоинты", InitWaypointsModule, "Временные маршруты NPC")

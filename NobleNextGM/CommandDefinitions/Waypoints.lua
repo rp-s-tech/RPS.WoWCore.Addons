@@ -11,6 +11,27 @@ end
 local MODE = "system"
 
 ns.CommandDefinitions.RegisterMany({
+    {
+        path = { "rps", "persist", "npc-bake" }, serverPath = "rps persist npc-bake",
+        syntax = ".rps persist npc-bake", description = "Зафиксировать выбранного временного НИПа вместе с маршрутом. Исходник заменяется после подтверждённой записи.",
+        args = {}, destructive = "db", console = false, responseMode = MODE, executable = true,
+    },
+    {
+        path = { "rps", "persist", "wp-bake" }, serverPath = "rps persist wp-bake",
+        syntax = ".rps persist wp-bake", description = "Сохранить бег, шаг, паузы и эмоции выбранного НИПа. Временный НИП также станет постоянным.",
+        args = {}, destructive = "db", console = false, responseMode = MODE, executable = true,
+    },
+    {
+        path = { "rps", "persist", "go-bake" }, serverPath = "rps persist go-bake",
+        syntax = ".rps persist go-bake [temporaryId]", description = "Зафиксировать последний объект из .gobject add temp либо указанный временный объект из go-list.",
+        args = { { name = "temporaryId", type = "string", required = false } },
+        destructive = "db", console = false, responseMode = MODE, executable = true,
+    },
+    {
+        path = { "rps", "persist", "go-list" }, serverPath = "rps persist go-list",
+        syntax = ".rps persist go-list", description = "Показать ID временных объектов в радиусе 30 метров для последующей фиксации.",
+        args = {}, destructive = false, console = false, responseMode = MODE, executable = true,
+    },
     ---------------------------------------------------------------------------
     -- vanilla .wp (cs_wp.cpp)
     ---------------------------------------------------------------------------
@@ -147,7 +168,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpmove" },
         serverPath = "wpmove",
         syntax = ".wpmove",
-        description = "NobleNext: добавить точку бега маршрута выделенного NPC в позицию игрока.",
+        description = "NobleNext: добавить точку бега маршрута выделенного NPC в позицию игрока. Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {},
         destructive = false,
         console = false,
@@ -158,7 +179,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpwalk" },
         serverPath = "wpwalk",
         syntax = ".wpwalk",
-        description = "NobleNext: добавить точку шага маршрута выделенного NPC в позицию игрока.",
+        description = "NobleNext: добавить точку шага маршрута выделенного NPC в позицию игрока. Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {},
         destructive = false,
         console = false,
@@ -169,7 +190,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpwait" },
         serverPath = "wpwait",
         syntax = ".wpwait <seconds>",
-        description = "NobleNext: точка ожидания на маршруте (минимум 0.5 сек).",
+        description = "NobleNext: точка ожидания на маршруте (минимум 0.5 сек). Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {
             { name = "seconds", type = "number", required = true },
         },
@@ -183,7 +204,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpemote" },
         serverPath = "wpemote",
         syntax = ".wpemote <emoteId> <seconds>",
-        description = "NobleNext: точка ожидания с эмоцией (минимум 0.5 сек).",
+        description = "NobleNext: точка ожидания с эмоцией (минимум 0.5 сек). Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {
             { name = "emoteId", type = "number", required = true },
             { name = "seconds", type = "number", required = true },
@@ -198,7 +219,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpclear" },
         serverPath = "wpclear",
         syntax = ".wpclear",
-        description = "NobleNext: очистить runtime-маршрут выделенного NPC.",
+        description = "NobleNext: очистить временный маршрут выделенного NPC. Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {},
         destructive = true,
         console = false,
@@ -209,7 +230,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpgo" },
         serverPath = "wpgo",
         syntax = ".wpgo",
-        description = "NobleNext: запустить runtime-маршрут выделенного NPC.",
+        description = "NobleNext: запустить временный маршрут выделенного NPC. Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {},
         destructive = false,
         console = false,
@@ -220,7 +241,7 @@ ns.CommandDefinitions.RegisterMany({
         path = { "wpstop" },
         serverPath = "wpstop",
         syntax = ".wpstop",
-        description = "NobleNext: остановить runtime-маршрут выделенного NPC.",
+        description = "NobleNext: остановить временный маршрут выделенного NPC. Не сохраняется в БД; исчезнет после перезапуска сервера.",
         args = {},
         destructive = false,
         console = false,
