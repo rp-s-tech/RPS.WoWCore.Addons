@@ -37,6 +37,7 @@ GM/POI/Editor.lua
 GM/POI/Init.lua
 GM/Waypoints/Init.lua
 GM/Tele/Init.lua
+GM/GobMover/ObjectSearch.lua
 GM/GobMover/Init.lua
 GM/ChatActions/Registry.lua
 GM/ChatActions/Kinds/Gob.lua

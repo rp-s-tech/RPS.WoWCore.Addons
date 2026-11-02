@@ -177,6 +177,14 @@ local function SetEntryText(val, sourceBox)
     SyncBoxGroup(Ui.entryBoxes, entryValueText, sourceBox)
 end
 
+function _G.NobleNextGobMover.SelectTemplate(entry, name)
+    entry = tonumber(entry)
+    if not entry or entry <= 0 or entry > 4294967295 or entry ~= math.floor(entry) then return false end
+    SetEntryText(tostring(entry))
+    PushRecentRecord({ entry = entry, name = name, kind = "lookup" })
+    return true
+end
+
 local function RunGroupCommand(cmd)
     if ns.EnqueueCommand then
         ns.EnqueueCommand(cmd, { tag = "gobmover:group" })
@@ -285,15 +293,7 @@ end
 local function LookupObjectsByQuery(box)
     local raw = box and box.GetText and box:GetText() or entryValueText or ""
     raw = tostring(raw):match("^%s*(.-)%s*$") or ""
-    if #raw < 2 then
-        ns.PrintError("Введите минимум 2 символа для поиска объекта (.lookup object).")
-        return
-    end
-    if raw:find("%s") then
-        SendWorldCommand("lookup object like " .. raw, "gobmover:lookup")
-    else
-        SendWorldCommand("lookup object " .. raw, "gobmover:lookup")
-    end
+    return ns.GobObjectSearch.Open(raw:match("^%d+$") and "" or raw)
 end
 
 local function ConfirmDeleteGuid(guid, name)
@@ -725,7 +725,7 @@ local function EnsureMiniHistory()
 
     local loBtn = MakeGobBtn(toolbar, "Найти", 50, 20, "primary", function()
         LookupObjectsByQuery(filterBox)
-    end, "Найти шаблон GO по имени (.lookup object) — результаты появятся в списке и чате")
+    end, "Открыть поиск объектов по всем словам названия — результаты появятся в отдельном окне")
     loBtn:SetPoint("LEFT", filterBox, "RIGHT", 4, 0)
 
     local nearBtn = MakeGobBtn(toolbar, "Рядом", 54, 20, nil, function()
@@ -1461,9 +1461,9 @@ local function InitGobMoverModule(parent)
     end, "Заменить шаблон выбранного объекта, сохранив его GUID и позицию (.gobject replace)")
     ReplaceBtn:SetPoint("LEFT", SpawnTempBtn, "RIGHT", 6, 0)
 
-    local LookupBtn = MakeGobBtn(WorldSection, "Поиск (.lo ob)", 104, 22, nil, function()
+    local LookupBtn = MakeGobBtn(WorldSection, "Поиск объектов", 104, 22, nil, function()
         LookupObjectsByQuery(EntryBox)
-    end, "Поиск шаблонов объектов по подстроке в поле Entry / Поиск")
+    end, "Открыть окно поиска по всем словам названия (.lo ob like)")
     LookupBtn:SetPoint("LEFT", ReplaceBtn, "RIGHT", 6, 0)
 
     -- Row 2 of WorldSection: Actions on selected GO
