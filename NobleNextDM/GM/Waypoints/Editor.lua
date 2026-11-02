@@ -32,8 +32,11 @@ local function InitEditor(parent)
         return b
     end
     local refresh = Button("Обновить", 96, f, "TOPLEFT", 12, -40)
-    local start = Button("Запустить", 88, refresh, "TOPRIGHT", 6, 0)
+    local start = Button("Запустить", 98, refresh, "TOPRIGHT", 6, 0)
     local bake = Button("Запечь", 76, start, "TOPRIGHT", 6, 0)
+    ns.NNL.Widgets.SetActionIcon(refresh, "Reset", {size = 20, keepText = true})
+    ns.NNL.Widgets.SetActionIcon(start, "Play", {size = 20, keepText = true})
+    ns.NNL.Widgets.SetActionIcon(bake, "BakeRoute", {size = 20, keepText = true})
     local previous = Button("Назад", 58, bake, "TOPRIGHT", 10, 0)
     local pageBox = ns.CreateNGEditBox(f, nil, 38, 24)
     pageBox:SetPoint("LEFT", previous, "RIGHT", 6, 0)

@@ -16,12 +16,14 @@ local stepValueText = "1"
 local rotValueText = "15"
 local scaleValueText = "1"
 local entryValueText = ""
+local searchValueText = ""
 
 local Ui = {
     stepBoxes = {},
     rotBoxes = {},
     scaleBoxes = {},
     entryBoxes = {},
+    searchBoxes = {},
     modeButtons = {},
     scaleLabels = {},
     targetLabels = {},
@@ -34,6 +36,7 @@ local Ui = {
 
 local SyncTargetPresentation
 local RefreshHistoryView
+local SetGobIcon
 
 local function PushRecentRecord(record)
     if type(record) ~= "table" then return end
@@ -185,6 +188,11 @@ function _G.NobleNextGobMover.SelectTemplate(entry, name)
     return true
 end
 
+local function SetSearchText(value, sourceBox)
+    searchValueText = tostring(value or "")
+    SyncBoxGroup(Ui.searchBoxes, searchValueText, sourceBox)
+end
+
 local function RunGroupCommand(cmd)
     if ns.EnqueueCommand then
         ns.EnqueueCommand(cmd, { tag = "gobmover:group" })
@@ -244,7 +252,7 @@ local function TargetNearestGo()
 end
 
 local function PickNearbyGo()
-    SendWorldCommand("gobject pick", "gobmover:pick")
+    return ns.GobObjectSearch.OpenNearby()
 end
 
 local function ResolveDesiredEntry(box)
@@ -293,7 +301,7 @@ end
 local function LookupObjectsByQuery(box)
     local raw = box and box.GetText and box:GetText() or entryValueText or ""
     raw = tostring(raw):match("^%s*(.-)%s*$") or ""
-    return ns.GobObjectSearch.Open(raw:match("^%d+$") and "" or raw)
+    return ns.GobObjectSearch.Open(raw)
 end
 
 local function ConfirmDeleteGuid(guid, name)
@@ -338,8 +346,11 @@ local function SetEditMode(mode)
         end
         if pair.toggleBtn then
             pair.toggleBtn:SetText(editMode == "group" and "Режим: Группа" or "Режим: Объект")
+            SetGobIcon(pair.toggleBtn, editMode == "group" and "Group" or "Object",
+                editMode == "group" and "Режим: группа" or "Режим: объект", 28,
+                "Переключить редактирование одиночного объекта или всей группы.")
             if pair.toggleBtn.SetActiveState then
-                pair.toggleBtn:SetActiveState(editMode == "group")
+                pair.toggleBtn:SetActiveState(true)
             end
         end
         if pair.hint then
@@ -416,6 +427,35 @@ local function TriggerResetRotation()
     ns.AIOHandle(AIO_HANDLER, "ResetRotation", activeGuid)
 end
 
+local directionIcons = {
+    F = "Forward", B = "Backward", L = "Left", R = "Right",
+    FL = "ForwardLeft", FR = "ForwardRight", BL = "BackLeft", BR = "BackRight",
+}
+local directionHints = {
+    F = "От себя", B = "К себе", L = "Влево", R = "Вправо",
+    FL = "От себя влево", FR = "От себя вправо", BL = "К себе влево", BR = "К себе вправо",
+}
+
+local gobIcons = {
+    Nearest = "Select", ReadEntry = "Inspect", Object = "Settings", Group = "ObjectGroup",
+}
+SetGobIcon = function(button, icon, title, size, detail)
+    NNL.Widgets.SetActionIcon(button, gobIcons[icon] or icon, { title = title, size = size or 32, detail = detail })
+end
+
+local function CreateScaleIcon(parent, scaleBox, direction, size)
+    local title = direction > 0 and "Масштаб +" or "Масштаб -"
+    local button = NNL.Widgets.CreateButton(parent, { text = title })
+    SetGobIcon(button, direction > 0 and "ScaleUp" or "ScaleDown", title, size,
+        "Изменить поле размера на 0.1. Для применения нажмите «Применить».")
+    button:SetScript("OnClick", function()
+        local value = ParseBoxNumber(scaleBox)
+        if not value or value <= 0 then return end
+        SetScaleText(string.format("%.2f", math.max(0.01, value + direction * 0.1)))
+    end)
+    return button
+end
+
 local function MakeGobBtn(parent, text, width, height, style, onClick, tooltip)
     local btn = NNL.Widgets.CreateButton(parent, {
         text = text,
@@ -456,14 +496,15 @@ end
 local MiniSuite = {
     toolbox = nil,
     inspector = nil,
+    search = nil,
     history = nil,
 }
 
 -- Reuse the common row layout: narrow palettes wrap instead of clipping.
 local function MiniRow(parent, controls, y, inset)
     inset = inset or 8
-    for _, control in ipairs(controls) do control:SetHeight(22) end
-    return -NNL.Layout.PlaceRow(controls, parent, inset, -y, 4, parent:GetWidth() - inset) + 6
+    for _, control in ipairs(controls) do control:SetHeight(control.actionIconSize or 22) end
+    return -NNL.Layout.PlaceRow(controls, parent, inset, -y, 4, parent:GetWidth() - inset, "center") + 6
 end
 
 local function FitMiniSections(win, sections, footer)
@@ -545,7 +586,7 @@ local function EnsureMiniInspector()
         name = "NobleNextGobMiniInspector",
         title = "Инспектор и спавн GO",
         icon = "Interface\\Icons\\inv_misc_enggizmos_swissarmy",
-        width = 304,
+        width = 300,
         height = 318,
         strata = "HIGH",
     })
@@ -580,7 +621,7 @@ local function EnsureMiniInspector()
     scaleSec:SetPoint("TOPRIGHT", infoCard, "BOTTOMRIGHT", 0, -6)
 
     local scLbl = ns.CreateNGLabel(scaleSec, "Размер:")
-    scLbl:SetSize(48, 20)
+    scLbl:SetSize(72, 20)
     scLbl:SetPoint("TOPLEFT", scaleSec, "TOPLEFT", 8, -32)
     table.insert(Ui.scaleLabels, scLbl)
 
@@ -592,6 +633,10 @@ local function EnsureMiniInspector()
         TriggerScale(scBox)
     end)
     scBtn:SetPoint("LEFT", scBox, "RIGHT", 6, 0)
+    SetGobIcon(scBtn, "Apply", "Применить масштаб", 36, "Применить указанное значение к объекту или группе.")
+
+    local scaleDown = CreateScaleIcon(scaleSec, scBox, -1, 36)
+    local scaleUp = CreateScaleIcon(scaleSec, scBox, 1, 36)
 
     local scaleChips = BuildPresetChips(scaleSec, { "0.5", "0.75", "1", "1.25", "1.5", "2" }, 8, -54, 38, 20, function(v)
         SetScaleText(v)
@@ -672,24 +717,75 @@ local function EnsureMiniInspector()
     end)
     delBtn:SetPoint("LEFT", grpBtn, "RIGHT", 4, 0)
 
+    SetGobIcon(fillActiveBtn, "ReadEntry", "Взять Entry выбранного объекта", 28)
+    SetGobIcon(dupBtn, "Duplicate", "Дублировать выбранный объект", 40)
+    SetGobIcon(repBtn, "Replace", "Заменить Entry выбранного объекта", 40, "Сохраняет GUID и положение объекта.")
+    SetGobIcon(spBtn, "Spawn", "Создать постоянный объект", 40)
+    SetGobIcon(tmpBtn, "SpawnTemporary", "Создать временный объект", 40, "Для сохранения после перезапуска объект нужно запечь.")
+    SetGobIcon(goToBtn, "Teleport", "Телепортироваться к объекту", 40)
+    SetGobIcon(pullBtn, "Pull", "Перенести объект к персонажу", 40)
+    SetGobIcon(useBtn, "Activate", "Активировать объект", 40)
+    SetGobIcon(chkBtn, "Info", "Информация об объекте в чат", 40)
+    SetGobIcon(grpBtn, "Group", "Добавить объект в группу", 40)
+    SetGobIcon(delBtn, "Delete", "Удалить объект", 40, "Потребуется подтверждение.")
+
+    local lookupBtn = MakeGobBtn(spawnSec, "Поиск шаблонов", 40, 40, nil, function()
+        ns.GobObjectSearch.Open(searchValueText)
+    end)
+    SetGobIcon(lookupBtn, "Search", "Поиск шаблонов по названию", 40,
+        "Найти шаблон для установки. Выбор заполняет поле Entry.")
+    local radarBtn = MakeGobBtn(spawnSec, "Радар объектов", 40, 40, nil, PickNearbyGo)
+    SetGobIcon(radarBtn, "Radar", "Радар объектов рядом", 40,
+        "Объекты текущей фазы в радиусе 50 метров. Выбор меняет текущую цель.")
+    local lookupLabel = ns.CreateNGLabel(spawnSec, "Поиск")
+    lookupLabel:SetPoint("TOP", lookupBtn, "BOTTOM", 0, -1)
+    local radarLabel = ns.CreateNGLabel(spawnSec, "Радар")
+    radarLabel:SetPoint("TOP", radarBtn, "BOTTOM", 0, -1)
+
     FitMiniSections(win, {
         {frame = infoCard},
         {frame = scaleSec, layout = function(section)
-            local y = MiniRow(section, {scLbl, scBox, scBtn}, 32)
+            local y = MiniRow(section, {scLbl, scBox, scaleDown, scaleUp, scBtn}, 32)
             return MiniRow(section, scaleChips, y) + 2
         end},
         {frame = spawnSec, layout = function(section)
             local y = MiniRow(section, {enLbl, enBox, fillActiveBtn}, 32)
-            return MiniRow(section, {spBtn, tmpBtn, dupBtn, repBtn}, y) + 2
+            return MiniRow(section, {spBtn, tmpBtn, dupBtn, repBtn, lookupBtn, radarBtn}, y) + 18
         end},
         {frame = actSec, layout = function(section)
-            local y = MiniRow(section, {goToBtn, pullBtn, useBtn}, 32)
-            return MiniRow(section, {chkBtn, grpBtn, delBtn}, y) + 2
+            return MiniRow(section, {goToBtn, pullBtn, useBtn, chkBtn, grpBtn, delBtn}, 32) + 2
         end},
     })
 
     MiniSuite.inspector = win
     SyncTargetPresentation()
+    return win
+end
+
+local function EnsureMiniSearch()
+    if MiniSuite.search then return MiniSuite.search end
+    if not NNL.Window or not NNL.Window.CreateMini then return nil end
+    local win = NNL.Window.CreateMini({
+        name = "NobleNextGobMiniSearch", title = "Поиск объектов",
+        icon = "Interface\\Icons\\inv_misc_spyglass_03",
+        width = 300, height = 120, strata = "HIGH", closeOnEscape = true,
+    })
+    local section = NNL.Widgets.CreateSection(win:GetContent(), { title = "Название объекта" })
+    local searchBox = ns.CreateNGEditBox(section, "GobMover_MiniSearch", 180, 22)
+    BindSyncedBox(Ui.searchBoxes, searchBox, searchValueText, SetSearchText)
+    local searchButton = MakeGobBtn(section, "Поиск объектов", 32, 32, nil, function()
+        LookupObjectsByQuery(searchBox)
+    end)
+    SetGobIcon(searchButton, "Search", "Поиск объектов по названию", 32)
+    searchBox:SetScript("OnEnterPressed", function(self) self:ClearFocus(); LookupObjectsByQuery(self) end)
+    local radarButton = MakeGobBtn(section, "Радар рядом", 32, 32, nil, PickNearbyGo)
+    SetGobIcon(radarButton, "Radar", "Радар ближайших объектов", 32, "Объекты текущей фазы в радиусе 50 метров.")
+    FitMiniSections(win, {
+        { frame = section, layout = function(frame)
+            return MiniRow(frame, {searchBox, searchButton, radarButton}, 32) + 2
+        end },
+    })
+    MiniSuite.search = win
     return win
 end
 
@@ -854,6 +950,11 @@ local function EnsureMiniHistory()
     end)
     delActionBtn:SetPoint("LEFT", spawnActionBtn, "RIGHT", 4, 0)
 
+    SetGobIcon(selActionBtn, "Select", "Выбрать объект из истории", 28)
+    SetGobIcon(gotoActionBtn, "Teleport", "Телепортироваться к объекту из истории", 28)
+    SetGobIcon(spawnActionBtn, "Spawn", "Создать постоянный объект из истории", 28)
+    SetGobIcon(delActionBtn, "Delete", "Удалить объект из мира", 28, "Потребуется подтверждение.")
+
     FitMiniSections(win, {
         {frame = toolbar, layout = function(section)
             filterBox:SetWidth(math.max(100, section:GetWidth() - 188))
@@ -886,7 +987,7 @@ local function EnsureMiniToolbox()
         name = "NobleNextGobMiniToolbox",
         title = "Пульт маппера",
         icon = "Interface\\Icons\\garrison_building_workshop",
-        width = 304,
+        width = 300,
         height = 352,
         strata = "HIGH",
         point = "RIGHT",
@@ -933,13 +1034,16 @@ local function EnsureMiniToolbox()
     local nearTargetBtn = MakeGobBtn(targetCard, "Ближайший", 84, 18, "primary", TargetNearestGo, "Выбрать ближайший объект (.gobject target)")
     nearTargetBtn:SetPoint("BOTTOMLEFT", targetCard, "BOTTOMLEFT", 6, 4)
 
-    local pickBtn = MakeGobBtn(targetCard, "Радар", 58, 18, nil, PickNearbyGo, "Список ближайших объектов из БД (.gobject pick)")
+    local pickBtn = MakeGobBtn(targetCard, "Радар", 58, 18, nil, PickNearbyGo, "Список ближайших объектов из БД (.gobject near 50)")
     pickBtn:SetPoint("LEFT", nearTargetBtn, "RIGHT", 4, 0)
 
     local modeToggleBtn = MakeGobBtn(targetCard, "Режим: Объект", 108, 18, nil, function()
         SetEditMode(editMode == "object" and "group" or "object")
     end, "Переключить: одиночный объект или вся группа (.gobject group)")
     modeToggleBtn:SetPoint("LEFT", pickBtn, "RIGHT", 4, 0)
+    SetGobIcon(nearTargetBtn, "Nearest", "Выбрать ближайший объект", 28)
+    SetGobIcon(pickBtn, "Radar", "Радар ближайших объектов", 28)
+    SetGobIcon(modeToggleBtn, "Object", "Режим: объект", 28)
     table.insert(Ui.modeButtons, { toggleBtn = modeToggleBtn })
 
     -- Movement Section
@@ -968,7 +1072,7 @@ local function EnsureMiniToolbox()
         L = "Влево", R = "Вправо",
         BL = "ЮЗ", B = "Назад", BR = "ЮВ",
     }
-    local cellW, cellH, gap = 58, 26, 4
+    local cellW, cellH, gap = 44, 44, 6
     local origX, origY = 8, -36
     local dpadButtons = {}
     for r = 1, 3 do
@@ -982,10 +1086,12 @@ local function EnsureMiniToolbox()
                     (dir == "F" or dir == "B" or dir == "L" or dir == "R") and "primary" or nil,
                     function() TriggerNudge(dir, miniStepBox) end)
                 b:SetPoint("TOPLEFT", moveSec, "TOPLEFT", x, y)
+                SetGobIcon(b, directionIcons[dir], directionHints[dir], cellH, "Переместить на заданный шаг относительно взгляда персонажа.")
                 dpadButtons[r][c] = b
             else
                 local centerBtn = MakeGobBtn(moveSec, "Цель", cellW, cellH, nil, TargetNearestGo, "Выбрать ближайший объект (.gobject target)")
                 centerBtn:SetPoint("TOPLEFT", moveSec, "TOPLEFT", x, y)
+                SetGobIcon(centerBtn, "Select", "Выбрать ближайший объект", cellH)
                 dpadButtons[r][c] = centerBtn
             end
         end
@@ -1042,16 +1148,35 @@ local function EnsureMiniToolbox()
     local rR = MakeGobBtn(rotSec, "Крен П", 60, 20, nil, function() TriggerTilt(0, -1, miniRotBox) end)
     rR:SetPoint("LEFT", rL, "RIGHT", 4, 0)
 
+    SetGobIcon(upBtn, "Up", "Поднять объект", cellH)
+    SetGobIcon(downBtn, "Down", "Опустить объект", cellH)
+    SetGobIcon(cwBtn, "Clockwise", "Повернуть по часовой стрелке", 44)
+    SetGobIcon(ccwBtn, "Counterclockwise", "Повернуть против часовой стрелки", 44)
+    SetGobIcon(rstRotBtn, "Reset", "Сбросить поворот", 44)
+    SetGobIcon(pUp, "PitchUp", "Увеличить наклон", 44)
+    SetGobIcon(pDn, "PitchDown", "Уменьшить наклон", 44)
+    SetGobIcon(rL, "RollLeft", "Крен влево", 44)
+    SetGobIcon(rR, "RollRight", "Крен вправо", 44)
+
+    local pitchLabel = ns.CreateNGLabel(rotSec, "Наклон")
+    local rollLabel = ns.CreateNGLabel(rotSec, "Крен")
+    pitchLabel:SetSize(92, 18)
+    rollLabel:SetSize(92, 18)
+
     -- Bottom Companion Windows Bar (like Epsilon Launcher / ObjectMover popouts)
-    local openInspBtn = MakeGobBtn(body, "Инспектор", 86, 20, nil, function()
+    local openInspBtn = MakeGobBtn(body, "Инспектор", 78, 20, nil, function()
         _G.NobleNextGobMover.ToggleMiniInspector()
     end, "Показать/скрыть мини-окно инспектора, масштаба и спавна")
     openInspBtn:SetPoint("BOTTOMLEFT", body, "BOTTOMLEFT", 6, 6)
 
-    local openHistBtn = MakeGobBtn(body, "История / Поиск", 112, 20, nil, function()
+    local openHistBtn = MakeGobBtn(body, "История", 62, 20, nil, function()
         _G.NobleNextGobMover.ToggleMiniHistory()
     end, "Показать/скрыть мини-окно истории объектов и поиска .lo ob")
-    openHistBtn:SetPoint("LEFT", openInspBtn, "RIGHT", 4, 0)
+    local openSearchBtn = MakeGobBtn(body, "Поиск", 48, 20, nil, function()
+        _G.NobleNextGobMover.ToggleMiniSearch()
+    end, "Открыть или скрыть отдельное окно поиска и радара")
+    openSearchBtn:SetPoint("LEFT", openInspBtn, "RIGHT", 4, 0)
+    openHistBtn:SetPoint("LEFT", openSearchBtn, "RIGHT", 4, 0)
 
     local openGrpBtn = MakeGobBtn(body, "Группы", 64, 20, nil, function()
         if ns.PopoutModule then
@@ -1073,20 +1198,21 @@ local function EnsureMiniToolbox()
             local controls = {stepLbl, miniStepBox}
             for _, chip in ipairs(stepChips) do controls[#controls + 1] = chip end
             local y = MiniRow(section, controls, 10)
-            local column = math.min(64, math.floor((section:GetWidth() - 28) / 4))
+            local column = cellH
+            local left = math.floor((section:GetWidth() - 4 * column - 3 * gap) / 2)
             for r, row in ipairs(dpadButtons) do
                 for c, button in ipairs(row) do
                     button:SetSize(column, cellH)
                     button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", section, "TOPLEFT", 8 + (c - 1) * (column + gap), -y - (r - 1) * (cellH + gap))
+                    button:SetPoint("TOPLEFT", section, "TOPLEFT", left + (c - 1) * (column + gap), -y - (r - 1) * (cellH + gap))
                 end
             end
-            local verticalHeight = (3 * cellH + 2 * gap - gap) / 2
+            local verticalHeight = cellH
             upBtn:SetSize(column, verticalHeight)
             downBtn:SetSize(column, verticalHeight)
             upBtn:ClearAllPoints(); downBtn:ClearAllPoints()
-            upBtn:SetPoint("TOPLEFT", section, "TOPLEFT", 8 + 3 * (column + gap), -y)
-            downBtn:SetPoint("TOPLEFT", upBtn, "BOTTOMLEFT", 0, -gap)
+            upBtn:SetPoint("TOPLEFT", section, "TOPLEFT", left + 3 * (column + gap), -y)
+            downBtn:SetPoint("TOPLEFT", upBtn, "BOTTOMLEFT", 0, -cellH - 2 * gap)
             return y + 3 * cellH + 2 * gap + 8
         end},
         {frame = rotSec, layout = function(section)
@@ -1094,9 +1220,10 @@ local function EnsureMiniToolbox()
             for _, chip in ipairs(rotChips) do controls[#controls + 1] = chip end
             local y = MiniRow(section, controls, 10)
             y = MiniRow(section, {cwBtn, ccwBtn, rstRotBtn}, y)
+            y = MiniRow(section, {pitchLabel, rollLabel}, y)
             return MiniRow(section, {pUp, pDn, rL, rR}, y) + 2
         end},
-    }, {openInspBtn, openHistBtn, openGrpBtn})
+    }, {openInspBtn, openSearchBtn, openHistBtn, openGrpBtn})
 
     MiniSuite.toolbox = win
     SetEditMode(editMode)
@@ -1120,6 +1247,24 @@ function _G.NobleNextGobMover.ToggleMiniInspector()
         insp:DockTo(tb, "RIGHT", 6, 0)
     end
     insp:Show()
+    return true
+end
+
+function _G.NobleNextGobMover.ToggleMiniSearch()
+    if not ns.Access or not ns.Access.Allows(2) then
+        ns.PrintError("Инструменты ГМ требуют подтверждённый уровень доступа 2+.")
+        return false
+    end
+    local search = EnsureMiniSearch()
+    if not search then return false end
+    if search:IsShown() then
+        search:Hide()
+        return false
+    end
+    local anchor = MiniSuite.inspector
+    if not anchor or not anchor:IsShown() then anchor = EnsureMiniToolbox() end
+    search:DockTo(anchor, "BOTTOM", 0, 6)
+    search:Show()
     return true
 end
 
@@ -1179,6 +1324,7 @@ function _G.NobleNextGobMover.CloseMiniSuite()
     if MiniSuite.toolbox then MiniSuite.toolbox:Hide() end
     if MiniSuite.inspector then MiniSuite.inspector:Hide() end
     if MiniSuite.history then MiniSuite.history:Hide() end
+    if MiniSuite.search then MiniSuite.search:Hide() end
 end
 
 -- ---------------------------------------------------------------------------
@@ -1270,9 +1416,11 @@ local function InitGobMoverModule(parent)
     local TargetBtn = MakeGobBtn(HeaderCard, "Ближайший объект", 150, 24, "primary", TargetNearestGo)
     TargetBtn:SetPoint("TOPLEFT", HeaderCard, "TOPLEFT", 12, -32)
 
-    local PickRadarBtn = MakeGobBtn(HeaderCard, "Радар рядом", 110, 24, nil, PickNearbyGo, "Показать список ближайших объектов текущей фазы (.gobject pick)")
+    local PickRadarBtn = MakeGobBtn(HeaderCard, "Радар рядом", 110, 24, nil, PickNearbyGo, "Показать список ближайших объектов текущей фазы (.gobject near 50)")
     PickRadarBtn:SetPoint("LEFT", TargetBtn, "RIGHT", 6, 0)
 
+    SetGobIcon(TargetBtn, "Nearest", "Выбрать ближайший объект", 28)
+    SetGobIcon(PickRadarBtn, "Radar", "Радар ближайших объектов", 28)
     -- Mode toggle Object | Group
     local ModeLabel = ns.CreateNGLabel(HeaderCard, "Режим:")
     ModeLabel:SetPoint("LEFT", PickRadarBtn, "RIGHT", 14, 0)
@@ -1281,6 +1429,9 @@ local function InitGobMoverModule(parent)
     ModeObjectBtn:SetPoint("LEFT", ModeLabel, "RIGHT", 6, 0)
     local ModeGroupBtn = ns.CreateNGButton(HeaderCard, "Группа", 84, 22)
     ModeGroupBtn:SetPoint("LEFT", ModeObjectBtn, "RIGHT", 6, 0)
+
+    SetGobIcon(ModeObjectBtn, "Object", "Редактировать одиночный объект", 28)
+    SetGobIcon(ModeGroupBtn, "Group", "Редактировать группу объектов", 28)
 
     local ModeHint = HeaderCard:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     ModeHint:SetTextColor(0.72, 0.75, 0.80, 1)
@@ -1299,7 +1450,7 @@ local function InitGobMoverModule(parent)
     ModeGroupBtn:SetScript("OnClick", function() SetEditMode("group") end)
 
     -- Left Column: Move Section
-    local MoveSection = ns.CreateNGSection(Manage, "Перемещение", 300, 214)
+    local MoveSection = ns.CreateNGSection(Manage, "Перемещение", 300, 262)
     MoveSection:SetPoint("TOPLEFT", HeaderCard, "BOTTOMLEFT", 0, -8)
     MoveSection:SetWidth(300)
 
@@ -1314,9 +1465,9 @@ local function InitGobMoverModule(parent)
         SetStepText(v)
     end)
 
-    local PAD = 64
+    local PAD = 40
     local PAD_GAP = 4
-    local padOriginX = 12
+    local padOriginX = 60
     local padOriginY = -62
 
     local dirGrid = {
@@ -1334,9 +1485,10 @@ local function InitGobMoverModule(parent)
         for col = 1, 3 do
             local dir = dirGrid[row][col]
             local x = padOriginX + (col - 1) * (PAD + PAD_GAP)
-            local y = padOriginY - (row - 1) * (32 + PAD_GAP)
+            local y = padOriginY - (row - 1) * (PAD + PAD_GAP)
             if dir ~= "" then
                 local btn = ns.CreateNGButton(MoveSection, dirLabels[dir], PAD, 32)
+                SetGobIcon(btn, directionIcons[dir], directionHints[dir], PAD, "Переместить на заданный шаг относительно взгляда персонажа.")
                 btn:SetPoint("TOPLEFT", MoveSection, "TOPLEFT", x, y)
                 btn:SetScript("OnClick", function()
                     TriggerNudge(dir, StepBox)
@@ -1345,7 +1497,7 @@ local function InitGobMoverModule(parent)
         end
     end
     local PickBtn = ns.CreateNGButton(MoveSection, "Выбрать", PAD, 32)
-    PickBtn:SetPoint("TOPLEFT", MoveSection, "TOPLEFT", padOriginX + PAD + PAD_GAP, padOriginY - 36)
+    PickBtn:SetPoint("TOPLEFT", MoveSection, "TOPLEFT", padOriginX + PAD + PAD_GAP, padOriginY - PAD - PAD_GAP)
     PickBtn:SetScript("OnClick", TargetNearestGo)
 
     local UpBtn = ns.CreateNGButton(MoveSection, "Вверх", 68, 44)
@@ -1355,13 +1507,17 @@ local function InitGobMoverModule(parent)
     end)
 
     local DownBtn = ns.CreateNGButton(MoveSection, "Вниз", 68, 44)
-    DownBtn:SetPoint("TOPLEFT", UpBtn, "BOTTOMLEFT", 0, -16)
+    DownBtn:SetPoint("TOPLEFT", UpBtn, "BOTTOMLEFT", 0, -PAD - 2 * PAD_GAP)
     DownBtn:SetScript("OnClick", function()
         TriggerNudge("DOWN", StepBox)
     end)
 
+    SetGobIcon(PickBtn, "Select", "Выбрать ближайший объект", PAD)
+    SetGobIcon(UpBtn, "Up", "Поднять объект", PAD)
+    SetGobIcon(DownBtn, "Down", "Опустить объект", PAD)
+
     -- Right Column: Rotation + Scale Sections
-    local RotSection = ns.CreateNGSection(Manage, "Поворот / наклон", nil, 138)
+    local RotSection = ns.CreateNGSection(Manage, "Поворот / наклон", nil, 176)
     RotSection:SetPoint("TOPLEFT", MoveSection, "TOPRIGHT", 8, 0)
     RotSection:SetPoint("TOPRIGHT", HeaderCard, "BOTTOMRIGHT", 0, -8)
 
@@ -1393,7 +1549,7 @@ local function InitGobMoverModule(parent)
 
     -- Tilt: pitch up/down, roll L/R, forward/back
     local PitchUpBtn = ns.CreateNGButton(RotSection, "Вперёд", 76, 24)
-    PitchUpBtn:SetPoint("TOPLEFT", CwBtn, "BOTTOMLEFT", 0, -8)
+    PitchUpBtn:SetPoint("TOPLEFT", CwBtn, "BOTTOMLEFT", 0, -26)
     PitchUpBtn:SetScript("OnClick", function()
         TriggerTilt(1, 0, RotBox)
     end)
@@ -1405,7 +1561,7 @@ local function InitGobMoverModule(parent)
     end)
 
     local RollLBtn = ns.CreateNGButton(RotSection, "Влево", 76, 24)
-    RollLBtn:SetPoint("LEFT", PitchDnBtn, "RIGHT", 6, 0)
+    RollLBtn:SetPoint("LEFT", PitchDnBtn, "RIGHT", 14, 0)
     RollLBtn:SetScript("OnClick", function()
         TriggerTilt(0, 1, RotBox)
     end)
@@ -1416,31 +1572,54 @@ local function InitGobMoverModule(parent)
         TriggerTilt(0, -1, RotBox)
     end)
 
+    SetGobIcon(CwBtn, "Clockwise", "Повернуть по часовой стрелке", 40)
+    SetGobIcon(CcwBtn, "Counterclockwise", "Повернуть против часовой стрелки", 40)
+    SetGobIcon(ResetBtn, "Reset", "Сбросить поворот", 40)
+    SetGobIcon(PitchUpBtn, "PitchUp", "Увеличить наклон", 40)
+    SetGobIcon(PitchDnBtn, "PitchDown", "Уменьшить наклон", 40)
+    SetGobIcon(RollLBtn, "RollLeft", "Крен влево", 40)
+    SetGobIcon(RollRBtn, "RollRight", "Крен вправо", 40)
+
+    local PitchLabel = ns.CreateNGLabel(RotSection, "Наклон")
+    PitchLabel:SetPoint("BOTTOMLEFT", PitchUpBtn, "TOPLEFT", 0, 4)
+    local RollLabel = ns.CreateNGLabel(RotSection, "Крен")
+    RollLabel:SetPoint("BOTTOMLEFT", RollLBtn, "TOPLEFT", 0, 4)
+
     -- Scale Section (Right Column bottom, aligned with MoveSection bottom)
-    local ScaleSection = ns.CreateNGSection(Manage, "Масштаб", nil, 68)
+    local ScaleSection = ns.CreateNGSection(Manage, "Масштаб", nil, 78)
     ScaleSection:SetPoint("TOPLEFT", RotSection, "BOTTOMLEFT", 0, -8)
     ScaleSection:SetPoint("TOPRIGHT", RotSection, "BOTTOMRIGHT", 0, -8)
 
     local ScaleLbl = ns.CreateNGLabel(ScaleSection, "Размер:")
+    ScaleLbl:SetSize(72, 22)
     ScaleLbl:SetPoint("TOPLEFT", ScaleSection, "TOPLEFT", 12, -32)
     table.insert(Ui.scaleLabels, ScaleLbl)
 
-    local ScaleBox = ns.CreateNGEditBox(ScaleSection, "GobMover_Scale", 56, 22)
-    ScaleBox:SetPoint("LEFT", ScaleLbl, "RIGHT", 6, 0)
+    local ScaleBox = ns.CreateNGEditBox(ScaleSection, "GobMover_Scale", 50, 22)
+    ScaleBox:SetPoint("LEFT", ScaleLbl, "RIGHT", 4, 0)
     BindSyncedBox(Ui.scaleBoxes, ScaleBox, scaleValueText, SetScaleText)
 
-    local ScaleBtn = ns.CreateNGButton(ScaleSection, "Применить размер", 132, 24)
+    local ScaleBtn = ns.CreateNGButton(ScaleSection, "Применить размер", 88, 24)
     ScaleBtn:SetPoint("LEFT", ScaleBox, "RIGHT", 8, 0)
     ScaleBtn:SetScript("OnClick", function()
         TriggerScale(ScaleBox)
     end)
 
+    local ScaleDownBtn = CreateScaleIcon(ScaleSection, ScaleBox, -1, 36)
+    ScaleDownBtn:SetPoint("LEFT", ScaleBox, "RIGHT", 4, 0)
+    local ScaleUpBtn = CreateScaleIcon(ScaleSection, ScaleBox, 1, 36)
+    ScaleUpBtn:SetPoint("LEFT", ScaleDownBtn, "RIGHT", 4, 0)
+    ScaleBtn:ClearAllPoints()
+    ScaleBtn:SetPoint("LEFT", ScaleUpBtn, "RIGHT", 4, 0)
+    ScaleBtn:SetText("Применить")
+    SetGobIcon(ScaleBtn, "Apply", "Применить масштаб", 36, "Применить указанное значение к объекту или группе.")
+
     -- Bottom Full-Width Section: Spawn, Replace & World Operations
-    local WorldSection = ns.CreateNGSection(Manage, "Спавн, замена и операции с объектом", nil, 96)
+    local WorldSection = ns.CreateNGSection(Manage, "Спавн, замена и операции с объектом", nil, 120)
     WorldSection:SetPoint("TOPLEFT", MoveSection, "BOTTOMLEFT", 0, -8)
     WorldSection:SetPoint("TOPRIGHT", ScaleSection, "BOTTOMRIGHT", 0, -8)
 
-    local EntryLbl = ns.CreateNGLabel(WorldSection, "Entry / Поиск:")
+    local EntryLbl = ns.CreateNGLabel(WorldSection, "Entry:")
     EntryLbl:SetPoint("TOPLEFT", WorldSection, "TOPLEFT", 12, -30)
     local EntryBox = ns.CreateNGEditBox(WorldSection, "GobMover_Entry", 110, 22)
     EntryBox:SetPoint("LEFT", EntryLbl, "RIGHT", 6, 0)
@@ -1461,16 +1640,23 @@ local function InitGobMoverModule(parent)
     end, "Заменить шаблон выбранного объекта, сохранив его GUID и позицию (.gobject replace)")
     ReplaceBtn:SetPoint("LEFT", SpawnTempBtn, "RIGHT", 6, 0)
 
+    local SearchLabel = ns.CreateNGLabel(WorldSection, "Поиск:")
+    SearchLabel:SetPoint("LEFT", ReplaceBtn, "RIGHT", 12, 0)
+    local SearchBox = ns.CreateNGEditBox(WorldSection, "GobMover_Search", 142, 22)
+    SearchBox:SetPoint("LEFT", SearchLabel, "RIGHT", 6, 0)
+    BindSyncedBox(Ui.searchBoxes, SearchBox, searchValueText, SetSearchText)
+    SearchBox:SetScript("OnEnterPressed", function(self) self:ClearFocus(); LookupObjectsByQuery(self) end)
+
     local LookupBtn = MakeGobBtn(WorldSection, "Поиск объектов", 104, 22, nil, function()
-        LookupObjectsByQuery(EntryBox)
+        LookupObjectsByQuery(SearchBox)
     end, "Открыть окно поиска по всем словам названия (.lo ob like)")
-    LookupBtn:SetPoint("LEFT", ReplaceBtn, "RIGHT", 6, 0)
+    LookupBtn:SetPoint("LEFT", SearchBox, "RIGHT", 6, 0)
 
     -- Row 2 of WorldSection: Actions on selected GO
     local GoToBtn = MakeGobBtn(WorldSection, "К объекту", 88, 22, nil, function()
         if RequireTarget() then SendWorldCommand("go gameobject " .. tostring(activeGuid), "gobmover:go") end
     end)
-    GoToBtn:SetPoint("TOPLEFT", WorldSection, "TOPLEFT", 12, -60)
+    GoToBtn:SetPoint("TOPLEFT", WorldSection, "TOPLEFT", 12, -74)
 
     local MoveHereBtn = MakeGobBtn(WorldSection, "Перенести к себе", 122, 22, nil, function()
         if RequireTarget() then SendWorldCommand("gobject move " .. tostring(activeGuid), "gobmover:movehere") end
@@ -1494,6 +1680,17 @@ local function InitGobMoverModule(parent)
         ConfirmDeleteGuid(activeGuid, activeName)
     end)
     DeleteGoBtn:SetPoint("LEFT", ToGroupBtn, "RIGHT", 6, 0)
+
+    SetGobIcon(ReplaceBtn, "Replace", "Заменить Entry выбранного объекта", 36, "Сохраняет GUID и положение объекта.")
+    SetGobIcon(LookupBtn, "Search", "Поиск объектов по названию", 36)
+    SetGobIcon(SpawnBtn, "Spawn", "Создать постоянный объект", 36)
+    SetGobIcon(SpawnTempBtn, "SpawnTemporary", "Создать временный объект", 36, "Для сохранения после перезапуска объект нужно запечь.")
+    SetGobIcon(GoToBtn, "Teleport", "Телепортироваться к объекту", 36)
+    SetGobIcon(MoveHereBtn, "Pull", "Перенести объект к персонажу", 36)
+    SetGobIcon(ActivateBtn, "Activate", "Активировать объект", 36)
+    SetGobIcon(CheckInfoBtn, "Info", "Информация об объекте в чат", 36)
+    SetGobIcon(ToGroupBtn, "Group", "Добавить объект в группу", 36)
+    SetGobIcon(DeleteGoBtn, "Delete", "Удалить объект", 36, "Потребуется подтверждение.")
 
     local HelpLabel = Manage:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HelpLabel:SetText("Совет: нажмите «Окна маппера» справа вверху (или ПКМ по разделу «Объекты» в меню), чтобы переключиться на компактные плавающие окошки.")

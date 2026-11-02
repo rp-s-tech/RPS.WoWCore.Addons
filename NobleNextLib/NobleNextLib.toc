@@ -21,6 +21,7 @@ Core/Extensions.lua
 Theme/Tokens.lua
 Theme/Backdrop.lua
 Widgets/Button.lua
+Widgets/ActionIcon.lua
 Widgets/EditBox.lua
 Widgets/Dropdown.lua
 Widgets/Section.lua

@@ -451,6 +451,8 @@ function ns.PoiEditor.Init(parent)
         tooltip = "Создать новую точку в позиции персонажа",
         tooltipLines = {"Владелец новой точки - ваш текущий персонаж. Имя, описание и цвет берутся из формы.",
             "После создания выберите новую точку в списке. Другого владельца и дополнительные свойства задайте через «Применить»."}})
+    NNL.Widgets.SetActionIcon(CreateBtn, "MapPin", {size = 20, keepText = true})
+    CreateBtn:SetWidth(134)
     Ui.CreateBtn = CreateBtn
     CreateBtn:SetPoint("TOPLEFT", EditSection, "TOPLEFT", 10, -30)
     CreateBtn:SetScript("OnClick", function()
@@ -461,8 +463,12 @@ function ns.PoiEditor.Init(parent)
     local SyncBtn = ns.CreateNGButton(EditSection, "Обновить", 84, 24)
     SyncBtn:SetPoint("LEFT", CreateBtn, "RIGHT", 4, 0)
     SyncBtn:SetScript("OnClick", function() runPoiCommand("poi sync") end)
+    NNL.Widgets.SetActionIcon(SyncBtn, "Reset", {size = 20, keepText = true})
+    SyncBtn:SetWidth(108)
 
     local DelBtn = NNL.Widgets.CreateButton(EditSection, {text = "Удалить", width = 76, height = 24, style = "danger"})
+    NNL.Widgets.SetActionIcon(DelBtn, "Delete", {size = 20, keepText = true})
+    DelBtn:SetWidth(96)
     Ui.DeleteBtn = DelBtn
     DelBtn:SetPoint("LEFT", SyncBtn, "RIGHT", 4, 0)
     DelBtn:SetScript("OnClick", function()
@@ -537,6 +543,7 @@ function ns.PoiEditor.Init(parent)
     Ui.ApplyPositionCheck.text:SetText("Перенести точку к персонажу")
 
     local ApplyBtn = ns.CreateNGButton(EditSection, "Применить все изменения", 268, 24)
+    NNL.Widgets.SetActionIcon(ApplyBtn, "Apply", {size = 20, keepText = true})
     Ui.ApplyBtn = ApplyBtn
     ApplyBtn:SetPoint("BOTTOMLEFT", EditSection, "BOTTOMLEFT", 10, 10)
     ApplyBtn:SetPoint("BOTTOMRIGHT", EditSection, "BOTTOMRIGHT", -10, 10)

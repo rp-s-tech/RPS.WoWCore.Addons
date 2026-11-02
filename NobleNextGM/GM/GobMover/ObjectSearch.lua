@@ -8,6 +8,7 @@ local PREFIX, PAGE_SIZE, MAX_RESULTS = "TrinityCore", 50, 1000
 local alphabet, echoSpace = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 62^3
 local sequence, issued = math.random(0, echoSpace - 1), 0
 local pending, selected, win, ui
+local mode = "lookup"
 local rows, page, notice = {}, 1, ""
 local statusText = "Введите название объекта и нажмите «Найти»."
 local rebuild
@@ -32,6 +33,10 @@ local function render()
     if not ui then return end
     local ready = allowed() and not pending
     ui.status:SetText(statusText)
+    ui.query:SetEnabled(mode == "lookup")
+    ui.search:SetText(mode == "nearby" and "Обновить" or "Найти")
+    ui.hint:SetText(mode == "nearby" and "Радар: объекты текущей фазы в радиусе 50 метров. Выберите объект для редактирования."
+        or "Все слова должны встречаться в названии. Например: wmo kobold house")
     ui.search:SetEnabled(ready and true or false)
     ui.previous:SetEnabled(ready and page > 1 or false)
     ui.next:SetEnabled(ready and page * PAGE_SIZE < #rows or false)
@@ -39,9 +44,10 @@ local function render()
     ui.temporary:SetEnabled(ready and selected ~= nil or false)
     ui.page:SetText(tostring(page))
     ui.selected:SetText(selected and string.format("Выбрано: %s\nEntry: %d", display(selected.name), selected.entry)
-        or "Выберите объект в списке для установки.")
+        or (mode == "nearby" and "Выберите объект в списке для редактирования." or "Выберите объект в списке для установки."))
     ui.empty:SetShown(#rows == 0)
-    ui.empty:SetText(pending and "Идёт поиск..." or "Введите или уточните слова из названия и нажмите «Найти».")
+    ui.empty:SetText(pending and "Идёт поиск..." or (mode == "nearby" and "Рядом нет сохранённых объектов текущей фазы."
+        or "Введите или уточните слова из названия и нажмите «Найти»."))
     ui.list:Refresh()
 end
 
@@ -71,13 +77,13 @@ end
 
 local function beginSearch()
     if not allowed() or pending then return end
-    local query = queryText(ui.query:GetText())
+    local query = mode == "nearby" and "" or queryText(ui.query:GetText())
     local _, length = query:gsub("[^\128-\191]", "")
-    if length < 2 or query:find("%c") or query:find("|", 1, true) then
+    if mode == "lookup" and (length < 2 or query:find("%c") or query:find("|", 1, true)) then
         setStatus("Введите слова из названия объекта, минимум два символа, без ссылок и переносов строк.")
         return
     end
-    local command = "lookup object like " .. query
+    local command = mode == "nearby" and "gobject near 50" or ("lookup object like " .. query)
     if #command + 5 > 255 then setStatus("Сократите поисковый запрос."); return end
     local character = text(UnitGUID("player"))
     local name = text(UnitName("player"))
@@ -93,9 +99,9 @@ local function beginSearch()
         local digit = n % 62
         parts[i], n = alphabet:sub(digit + 1, digit + 1), math.floor(n / 62)
     end
-    local token = { echo = table.concat(parts), character = character, query = query, rows = {}, seen = {}, notices = {} }
+    local token = { echo = table.concat(parts), character = character, query = query, mode = mode, rows = {}, seen = {}, notices = {} }
     pending, selected, rows, page, notice = token, nil, {}, 1, ""
-    statusText = "Идёт поиск: " .. display(query)
+    statusText = mode == "nearby" and "Загрузка ближайших объектов..." or ("Идёт поиск: " .. display(query))
     rebuild()
     local ok, result = pcall(C_ChatInfo.SendAddonMessage, PREFIX, "i" .. token.echo .. command, "WHISPER", name)
     local codes = Enum and Enum.SendAddonMessageResult
@@ -124,6 +130,7 @@ local function createWindow()
     local body = win:GetContent()
     ui = {}
     local hint = ns.CreateNGLabel(body, "Все слова должны встречаться в названии. Например: wmo kobold house")
+    ui.hint = hint
     hint:SetPoint("TOPLEFT", body, "TOPLEFT", 12, -10)
     hint:SetPoint("TOPRIGHT", body, "TOPRIGHT", -12, -10)
     hint:SetJustifyH("LEFT")
@@ -161,6 +168,7 @@ local function createWindow()
             selected = row
             local mover = _G.NobleNextGobMover
             if mover and mover.SelectTemplate then mover.SelectTemplate(row.entry, row.name) end
+            if row.guid and mover and mover.SetTarget then mover.SetTarget(row.guid, row.name, row.phaseId, row.entry) end
             render()
         end,
         renderRow = function(button, row)
@@ -185,7 +193,7 @@ local function createWindow()
             NNL.Theme.Apply(button, row == selected and "rowSelected" or "row")
             button:SetEnabled(allowed() and not pending or false)
             button.title:SetText(display(row.name))
-            button.meta:SetText("Entry: " .. row.entry)
+            button.meta:SetText("Entry: " .. row.entry .. (row.guid and ("  |  GUID: " .. row.guid) or ""))
         end,
     })
     ui.list:SetPoint("TOPLEFT", section, "TOPLEFT", 6, -6)
@@ -233,6 +241,9 @@ end
 
 function Search.Open(query)
     if not allowed() then return false end
+    if mode ~= "lookup" then
+        mode, pending, selected, rows, page, notice = "lookup", nil, nil, {}, 1, ""
+    end
     if not win then createWindow() end
     win:SetMinimized(false)
     win:Show()
@@ -243,6 +254,18 @@ function Search.Open(query)
     else
         ui.query:SetFocus()
     end
+    rebuild()
+    return true
+end
+
+function Search.OpenNearby()
+    if not allowed() then return false end
+    if not win then createWindow() end
+    mode, pending, selected, rows, page, notice = "nearby", nil, nil, {}, 1, ""
+    ui.query:SetText("")
+    win:SetMinimized(false)
+    win:Show()
+    beginSearch()
     return true
 end
 
@@ -255,12 +278,21 @@ ns.RegisterAddonPrefix(PREFIX, function(_, message, channel, sender)
         token.ack = true
     elseif opcode == "m" and token.ack then
         local rawEntry, name = body:match("|Hgameobject_entry:(%d+)|h%[(.-)%]|h")
+        local guid
+        if token.mode == "nearby" then
+            rawEntry = body:match("Entry:%s*(%d+)")
+            local rawGuid, label = body:match("|Hgameobject:(%d+)|h%[(.-)%]|h")
+            guid = tonumber(rawGuid)
+            name = label and label:match("^(.-)%s+X:")
+            if not guid or guid <= 0 or guid > 9007199254740991 or not name then rawEntry = nil end
+        end
         local entry = tonumber(rawEntry)
+        local key = guid or entry
         if entry and entry > 0 and entry <= 4294967295 then
-            if not token.seen[entry] then
+            if not token.seen[key] then
                 if #token.rows < MAX_RESULTS then
-                    token.seen[entry] = true
-                    token.rows[#token.rows + 1] = { entry = entry, name = name }
+                    token.seen[key] = true
+                    token.rows[#token.rows + 1] = { entry = entry, name = name, guid = guid, phaseId = tonumber(body:match("%[RP phase: (%d+)%]")) }
                 else token.truncated = true end
             end
         elseif #token.notices < 3 then
@@ -272,7 +304,7 @@ ns.RegisterAddonPrefix(PREFIX, function(_, message, channel, sender)
             return
         end
         pending, rows, page = nil, token.rows, 1
-        table.sort(rows, function(a, b) return a.entry < b.entry end)
+        if token.mode == "lookup" then table.sort(rows, function(a, b) return a.entry < b.entry end) end
         notice = table.concat(token.notices, " ")
         if token.truncated then notice = "Показаны первые " .. MAX_RESULTS .. " объектов. Уточните запрос. " .. notice end
         resultStatus()

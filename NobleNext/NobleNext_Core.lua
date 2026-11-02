@@ -244,23 +244,23 @@ ns.modules = {} -- keyed by stable id
 ns.modulesByTitle = {} -- legacy title -> id
 
 local MODULE_DEFAULTS = {
-    ["RP Фазы"] = { id = "phase", order = 100, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/Icons/inv_misc_map02", slash = "/nnphases" },
-    ["POI"] = { title = "Точки интереса", id = "poi", order = 110, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/Icons/inv_misc_map_01", slash = "/nnpoi" },
-    ["Tele"] = { title = "Телепорты", id = "tele", order = 120, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/Icons/spell_arcane_teleportstormwind", slash = "/nntele" },
-    ["Gob Mover"] = { title = "Объекты", id = "gobmover", order = 200, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/Icons/garrison_building_workshop", slash = "/nngobmover" },
-    ["GobGroup"] = { title = "Группы объектов", id = "gobgroup", order = 210, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/Icons/inv_misc_map02", slash = "/nngobgroup" },
-    ["Custom NPC"] = { title = "Шаблоны NPC", id = "customnpc", order = 220, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/Icons/inv_misc_head_human_01", slash = "/nncustomnpc" },
-    ["NPC"] = { title = "Существа", id = "npc", order = 300, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/Icons/inv_misc_head_dragon_01", slash = "/nnnpc" },
-    ["Армия"] = { id = "army", order = 310, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/Icons/ability_hunter_beasttraining", slash = "/nnarmy" },
-    ["Спутник"] = { id = "pet", order = 320, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/Icons/ability_hunter_beastcall", slash = "/nnpet" },
-    ["Вейпоинты"] = { title = "Маршруты", id = "waypoints", order = 330, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/Icons/ability_hunter_pathfinding", slash = "/nnwaypoints" },
-    ["Бой"] = { id = "battle", order = 340, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/Icons/ability_warrior_challange", slash = "/nnbattle" },
-    ["Мастер"] = { id = "master", order = 400, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/Icons/inv_misc_book_09", slash = "/nnmaster" },
-    ["Команды"] = { id = "commands", order = 410, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/Icons/inv_misc_book_11", slash = "/nn commands" },
-    ["Трансмог"] = { id = "transmog", order = 500, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/inv_chest_cloth_30", slash = "/nntransmogsync" },
+    ["RP Фазы"] = { id = "phase", order = 100, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/AddOns/NobleNext/Assets/Icons/Map", slash = "/nnphases" },
+    ["POI"] = { title = "Точки интереса", id = "poi", order = 110, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/AddOns/NobleNext/Assets/Icons/MapPin", slash = "/nnpoi" },
+    ["Tele"] = { title = "Телепорты", id = "tele", order = 120, group = "world", groupOrder = 10, groupLabel = "Мир", icon = "Interface/AddOns/NobleNext/Assets/Icons/Portal", slash = "/nntele" },
+    ["Gob Mover"] = { title = "Объекты", id = "gobmover", order = 200, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/AddOns/NobleNext/Assets/Icons/Tools", slash = "/nngobmover" },
+    ["GobGroup"] = { title = "Группы объектов", id = "gobgroup", order = 210, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/AddOns/NobleNext/Assets/Icons/ObjectGroup", slash = "/nngobgroup" },
+    ["Custom NPC"] = { title = "Шаблоны NPC", id = "customnpc", order = 220, group = "objects", groupOrder = 20, groupLabel = "Объекты", icon = "Interface/AddOns/NobleNext/Assets/Icons/Mannequin", slash = "/nncustomnpc" },
+    ["NPC"] = { title = "Существа", id = "npc", order = 300, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/AddOns/NobleNext/Assets/Icons/NPC", slash = "/nnnpc" },
+    ["Армия"] = { id = "army", order = 310, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/AddOns/NobleNext/Assets/Icons/Army", slash = "/nnarmy" },
+    ["Спутник"] = { id = "pet", order = 320, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/AddOns/NobleNext/Assets/Icons/Whistle", slash = "/nnpet" },
+    ["Вейпоинты"] = { title = "Маршруты", id = "waypoints", order = 330, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/AddOns/NobleNext/Assets/Icons/Route", slash = "/nnwaypoints" },
+    ["Бой"] = { id = "battle", order = 340, group = "creatures", groupOrder = 30, groupLabel = "Существа", icon = "Interface/AddOns/NobleNext/Assets/Icons/Combat", slash = "/nnbattle" },
+    ["Мастер"] = { id = "master", order = 400, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/AddOns/NobleNext/Assets/Icons/Rulebook", slash = "/nnmaster" },
+    ["Команды"] = { id = "commands", order = 410, group = "director", groupOrder = 40, groupLabel = "Режиссёр", icon = "Interface/AddOns/NobleNext/Assets/Icons/Info", slash = "/nn commands" },
+    ["Трансмог"] = { id = "transmog", order = 500, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/AddOns/NobleNext/Assets/Icons/Equipment", slash = "/nntransmogsync" },
     -- Ids keep the values derived from the title before these entries existed.
-    ["Бой 3d6"] = { id = "Бой_3d6", order = 510, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/INV_Misc_Dice_01" },
-    ["Предметы RP"] = { id = "Предметы_rp", order = 520, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/Icons/INV_MISC_RUNE_01" },
+    ["Бой 3d6"] = { id = "Бой_3d6", order = 510, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/AddOns/NobleNext/Assets/Icons/BattleDice" },
+    ["Предметы RP"] = { id = "Предметы_rp", order = 520, group = "client", groupOrder = 50, groupLabel = "Клиент", icon = "Interface/AddOns/NobleNext/Assets/Icons/Treasure" },
 }
 
 local function ResolveModuleId(nameOrId)

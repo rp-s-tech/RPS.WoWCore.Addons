@@ -2,6 +2,7 @@
 -- GM/Waypoints/Init.lua — маршруты NPC
 
 local _, ns = ...
+local NNL = LibStub("NobleNextLib-1.0")
 
 local function SendGmCommand(cmd)
     if not ns.RunGmCommand(cmd) then
@@ -74,7 +75,7 @@ local function InitWaypointsModule(parent)
         SendGmCommand(".wpwalk")
     end)
 
-    local ClearBtn = ns.CreateNGButton(RecordSection, "Очистить маршрут", 130, 26)
+    local ClearBtn = ns.CreateNGButton(RecordSection, "Очистить маршрут", 158, 26)
     Describe(ClearBtn, "Остановить маршрут и очистить временные точки выбранного НИПа. Ранее сохранённый снимок остаётся в БД.")
     ClearBtn:SetPoint("TOPLEFT", WalkBtn, "TOPRIGHT", 15, 0)
     ClearBtn:SetScript("OnClick", function()
@@ -95,7 +96,7 @@ local function InitWaypointsModule(parent)
     WaitBox:SetPoint("LEFT", WaitLabel, "RIGHT", 10, 0)
     WaitBox:SetText("2")
 
-    local WaitBtn = ns.CreateNGButton(RecordSection, "Добавить паузу", 120, 26)
+    local WaitBtn = ns.CreateNGButton(RecordSection, "Добавить паузу", 148, 26)
     Describe(WaitBtn, "Добавить ожидание в конец маршрута. Сервер принимает длительность от 0.5 секунды.")
     WaitBtn:SetPoint("LEFT", WaitBox, "RIGHT", 10, 0)
     WaitBtn:SetScript("OnClick", function()
@@ -133,7 +134,7 @@ local function InitWaypointsModule(parent)
 
     btnY = btnY - 50
 
-    local GoBtn = ns.CreateNGButton(RecordSection, "Запустить маршрут", 140, 30)
+    local GoBtn = ns.CreateNGButton(RecordSection, "Запустить маршрут", 164, 30)
     Describe(GoBtn, "Начать выполнение записанного маршрута выбранным NPC.")
     GoBtn:SetPoint("TOPLEFT", RecordSection, "TOPLEFT", 20, btnY)
     GoBtn:SetScript("OnClick", function()
@@ -155,11 +156,11 @@ local function InitWaypointsModule(parent)
     BakeNpc:SetPoint("TOPLEFT", GoBtn, "BOTTOMLEFT", 0, -10)
     Describe(BakeNpc, "Сделать выбранного временного НИПа постоянным вместе с его маршрутом. Исходник заменяется после подтверждения записи.")
     BakeNpc:SetScript("OnClick", function() SendGmCommand(".rps persist npc-bake") end)
-    local BakeRoute = ns.CreateNGButton(RecordSection, "Запечь маршрут", 130, 26)
+    local BakeRoute = ns.CreateNGButton(RecordSection, "Запечь маршрут", 154, 26)
     BakeRoute:SetPoint("LEFT", BakeNpc, "RIGHT", 15, 0)
     Describe(BakeRoute, "Сохранить бег, шаг, паузы и эмоции выбранного НИПа. Временный НИП также станет постоянным. Чтобы удалить сохранённый маршрут, очистите точки и запеките снова.")
     BakeRoute:SetScript("OnClick", function() SendGmCommand(".rps persist wp-bake") end)
-    local BakeGo = ns.CreateNGButton(RecordSection, "Запечь объект", 130, 26)
+    local BakeGo = ns.CreateNGButton(RecordSection, "Запечь объект", 150, 26)
     BakeGo:SetPoint("LEFT", BakeRoute, "RIGHT", 15, 0)
     Describe(BakeGo, "Сделать постоянным последний объект из .gobject add temp. Для другого используйте .rps persist go-list и go-bake с его ID.")
     BakeGo:SetScript("OnClick", function() SendGmCommand(".rps persist go-bake") end)
@@ -190,6 +191,20 @@ local function InitWaypointsModule(parent)
     HelpLabel:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -12, 10)
     HelpLabel:SetJustifyH("CENTER")
     HelpLabel:SetWordWrap(true)
+
+
+    NNL.Widgets.SetActionIcon(MoveBtn, "Run", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(WalkBtn, "Walk", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(ClearBtn, "Clear", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(WaitBtn, "Wait", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(EmoteBtn, "Talk", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(GoBtn, "Play", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(StopBtn, "Stop", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(EditBtn, "Route", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(BakeNpc, "BakeNPC", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(BakeRoute, "BakeRoute", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(BakeGo, "BakeObject", {size = 20, keepText = true})
+    NNL.Widgets.SetActionIcon(StateBtn, "Apply", {size = 20, keepText = true})
 
     return f
 end

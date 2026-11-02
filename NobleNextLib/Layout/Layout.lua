@@ -28,25 +28,35 @@ end
 
 --- Place frames in a horizontal row with optional wrap.
 --- frames: array of frames already sized
-function Layout.PlaceRow(frames, anchorParent, startX, startY, gap, wrapWidth)
+function Layout.PlaceRow(frames, anchorParent, startX, startY, gap, wrapWidth, verticalAlign)
     gap = gap or 6
     startX = startX or 0
     startY = startY or 0
     local x, y = startX, startY
     local rowH = 0
+    local row = {}
+    local function finishRow()
+        for _, item in ipairs(row) do
+            local offset = verticalAlign == "center" and (rowH - item.height) / 2 or 0
+            item.frame:ClearAllPoints()
+            item.frame:SetPoint("TOPLEFT", anchorParent, "TOPLEFT", item.x, y - offset)
+        end
+        row = {}
+    end
     for _, frame in ipairs(frames or {}) do
         local w = frame:GetWidth() or 80
         local h = frame:GetHeight() or 22
         if wrapWidth and x > startX and (x + w) > wrapWidth then
+            finishRow()
             x = startX
             y = y - (rowH + gap)
             rowH = 0
         end
-        frame:ClearAllPoints()
-        frame:SetPoint("TOPLEFT", anchorParent, "TOPLEFT", x, y)
+        row[#row + 1] = { frame = frame, x = x, height = h }
         x = x + w + gap
         if h > rowH then rowH = h end
     end
+    finishRow()
     return y - rowH
 end
 
