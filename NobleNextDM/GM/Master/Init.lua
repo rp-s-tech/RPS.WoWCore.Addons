@@ -415,15 +415,28 @@ local function InitMasterModule(parent)
     local MiscSection = CreateSection(NpcTab, "Состояние", 620, 70)
     MiscSection:SetPoint("TOPLEFT", StateSection, "BOTTOMLEFT", 0, -10)
 
-    local WeaponBtn = ns.CreateNGButton(MiscSection, "Сменить положение оружия", 210, 24)
+    local WeaponBtn = ns.CreateNGButton(MiscSection, "Убрать оружие", 110, 24)
     WeaponBtn:SetPoint("TOPLEFT", MiscSection, "TOPLEFT", 10, -34)
     WeaponBtn:SetScript("OnClick", function()
         if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
-        SendGmCommand(".weapon")
+        SendGmCommand(".weapon 0")
+    end)
+
+    local MeleeBtn = ns.CreateNGButton(MiscSection, "В руку", 85, 24)
+    MeleeBtn:SetPoint("LEFT", WeaponBtn, "RIGHT", 6, 0)
+    MeleeBtn:SetScript("OnClick", function()
+        if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
+        SendGmCommand(".weapon 1")
+    end)
+    local RangedBtn = ns.CreateNGButton(MiscSection, "Дальний бой", 110, 24)
+    RangedBtn:SetPoint("LEFT", MeleeBtn, "RIGHT", 6, 0)
+    RangedBtn:SetScript("OnClick", function()
+        if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
+        SendGmCommand(".weapon 2")
     end)
 
     local SavePoseBtn = ns.CreateNGButton(MiscSection, "Сохранить позу", 150, 24)
-    SavePoseBtn:SetPoint("TOPLEFT", WeaponBtn, "TOPRIGHT", 15, 0)
+    SavePoseBtn:SetPoint("LEFT", RangedBtn, "RIGHT", 10, 0)
     SavePoseBtn:SetScript("OnClick", function()
         if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
         SendGmCommand(".npcsave")
@@ -443,7 +456,7 @@ local function InitMasterModule(parent)
         if not IsNpcTarget() then ns.PrintError("Возьмите в цель NPC."); return end
         local val = NumberInput(ScaleBox, "Масштаб", 0.1, 10)
         if not val then return end
-        SendGmCommand(".modify scale " .. val)
+        SendGmCommand(".npc set scale " .. val)
     end)
 
     local PhaseLabel = ns.CreateNGLabel(ScaleSection, "Фаза:")
@@ -569,7 +582,7 @@ local function InitMasterModule(parent)
     end)
     local UnpossessBtn = ns.CreateNGButton(NpcSection, "Отпустить", 150, 24)
     UnpossessBtn:SetPoint("TOPLEFT", PossessBtn, "TOPRIGHT", 15, 0)
-    UnpossessBtn:SetScript("OnClick", function() SendGmCommand(".unpossess") end)
+    UnpossessBtn:SetScript("OnClick", function() SendGmCommand(".rps release") end)
 
     local MoveSection = CreateSection(ToolsTab, "Перемещение", 620, 70)
     MoveSection:SetPoint("TOPLEFT", NpcSection, "BOTTOMLEFT", 0, -10)

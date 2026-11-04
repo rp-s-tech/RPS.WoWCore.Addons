@@ -1,0 +1,868 @@
+{
+  "generator": "Addons/tools/build_mapper_icons.ps1 + encode_mapper_blp.py (local workspace)",
+  "format": "BLP2 paletted, 8-bit alpha; same layout as LogoMip.blp",
+  "reference_sha256": "c0f177d53fc086b4bbd9613dcd2d5719aaa96393f7bd7eade261ca2d11d5e96b",
+  "icons": {
+    "Activate.blp": "c7df867b6c87ce6e3798b1acd1773f520485ae7cdf852298bd301a8485197903",
+    "Apply.blp": "a46fea99e40ffa12e0918e87500ec1c4e5fc30d90f830733691c93ac8389fd98",
+    "Army.blp": "3736bcd255bd352fb22d78acf256bf245a1be2ab90c99c5eeee423965fb802ce",
+    "BackLeft.blp": "4de51f7b628f42491e19c7d2536e00ad27770a7e7b6fab57e7106cd369c01dbc",
+    "BackRight.blp": "140517366a25acb78c668d5bd9c6cf86de162389151cea7b896a653b6a6411df",
+    "Backward.blp": "b28da63719d64436ad5f138d057113c3fd90728aea9d33660b5be20c1ebbffbd",
+    "BakeNPC.blp": "9f29bcb0a4ac67597aa3c761914192554a7cda6508bf85c91292bbfb5b8dbebb",
+    "BakeObject.blp": "5628ec66a2d25548dfba1320b1d9ab6cc18bfb3e96240e1dd457655bea899aca",
+    "BakeRoute.blp": "f93a93d56c9848e9b3317952437c7172d7c1c732ca4e9b2ea96d02c1b3e815df",
+    "Banner.blp": "76fe783a9f93ffa91dd5f9bdbf54b4cd581af2ab4b0b341bdbfd242f58d101d9",
+    "BattleDice.blp": "6c0942f82096c27737d5dfd9e8824522224821e22065e49ad7b1f882cfcaabd5",
+    "Blueprint.blp": "0d6b1ae7ffc40309d434a9a116ea54ee5f2bd84a41e3d2ccd1124db54c7ca75e",
+    "Bookmark.blp": "dc921fdd07b80832d1775bac16cabea68ee31c931eaf1d544ae6cbb9e3aff7b9",
+    "Cancel.blp": "6769365638091aa65e5ce1008bff7d692104afa74d4645fbc8300d28cbf3edbc",
+    "Clear.blp": "dca4e6ae6a3118033b6705acdc59c483c636d33520f05c9898e08785f75bd211",
+    "Clockwise.blp": "9fd26e0b89b7ca083129ed2df08106373f6e58c9177029c0005040d7b6289341",
+    "Combat.blp": "c76cfa992f6bcaed142d91f27f4db57e51ddbf56f2889fff7c18547f07a26bad",
+    "Compass.blp": "1157f1ab1a1d9653f1b79b79037b60786163b34f80e26cd6fd1d77fede60ee39",
+    "Counterclockwise.blp": "d75f4748f47a903564734a67704a3ccc15f18bceb92e60c55b76a430b76c4104",
+    "Crystal.blp": "e943ce0cbd67a9b2598032cc17d431bc7592ab21bd5de259af777a82708851e7",
+    "Delete.blp": "4a97ea50c5d8a47ffeae95759bf315dc0a95b26c44af3a0418b3a9e5379a3265",
+    "Down.blp": "a526b6ac32634434585b0b9ee6fef7a312212fbfe175323ed77c76557c18b155",
+    "Dragon.blp": "c6d5942bab88f25725a76636ea5179144896cdbe7fcf969ad6e9d78f9cb56389",
+    "Duplicate.blp": "f8249e76c41c37914b7f2d78f6fae0ca11889222e52e7e874d22a1247c5ec233",
+    "Equipment.blp": "33fbe4b74dcd8d82ac794cf61f7432624c266d51b32d7c004394b38b5e48dce7",
+    "Eye.blp": "8cd77dfff8e096f6869ec4ce2a6e181f2d52aa3559e160ebaeee7e14c2e9d9ed",
+    "FavoriteAdd.blp": "2d015faeb10fda4330173e0f7fc0a6abc9c40b91424983386259fe4b8530657c",
+    "FavoriteRemove.blp": "47e9d1ec415cd1e75ad4de987c9a2e1007c0c260060b80fc82ec2a0f2e866320",
+    "Forward.blp": "07ad4c2e62e939d7763747face181f068221792d5eafae92e84838693991d2f5",
+    "ForwardLeft.blp": "43261489f65b0b8cbe4229f494d4b2911c33261e99d61a0339eccdbbe8b416e4",
+    "ForwardRight.blp": "73c3f0ea8bb5691d0b498aefe8e311105e3fbce9fcbbe096c5b90fd1b40ac61c",
+    "Gears.blp": "4e69a13e07999ddfb6390300fe8b760b998f058f46dbf43555e3a4e7c68f8073",
+    "Group.blp": "5ab50497375278bb07ff88884def4ae831076d11f6a5b7b55d06eb8a3327adff",
+    "Info.blp": "fd09a5371f464f5cba72a028c19d286666808817d597cd7e9a033973a9d86255",
+    "Inspect.blp": "9d9cb98ae5b43b98b8dc13ee9510bd27c2511fd10664b13082f9d289910ea985",
+    "Left.blp": "d5c0c2a9626d1e2bbdcbeb014c40ac9ff76a3a5059d3b2941e26156d5ff85b61",
+    "Link.blp": "c46a869c237364ec51b5599ee1de1c3e2b8fb05bc0bfbddedc056a97fb819da7",
+    "Lock.blp": "ad44b4798d97f17685ecaaee37b565e8074215df2e1aa2c4744dcbde321d3829",
+    "Mannequin.blp": "111e683854995cecd008a58c5ce3123fc9adc67d608a539c817cc4ba333347e5",
+    "Map.blp": "01a9abd7112b11a77c5ea9f80796ea77ebb34563f28371103cc9f9d55fc27cbb",
+    "MapPin.blp": "a89133855f67079caa4e8018867169eb512a3c543ab0f8b3d1f97d547a114320",
+    "NPC.blp": "1490aae2a8945e08781230935a998dc5cd47fc00e2aec86c651d379fff56911a",
+    "ObjectGroup.blp": "cc01ae3df2ba8c70af00dfbd762e52d6a2da69cb15e4d2d9cfd09d4e196afbf2",
+    "PitchDown.blp": "a74ffced4b75b031b70d29818edaeef187a906c60fe3298f990afec036adef87",
+    "PitchUp.blp": "5edf38cb582087b41fb2cb83b7ddbf324f441976c2a6b9b74eb38cf352fd8e1d",
+    "Play.blp": "326601f1e561f05684884aa279b790ed4f84c1c8ddbe59e5945d1c45346b33f8",
+    "Portal.blp": "851558f38761673699a1b13d0b0b0b12fc75679021cee320b0c0404788cddfcd",
+    "Pull.blp": "2f48dddf3a3ad42970945d30402effb375906887e34c3e439f2bcdfa53f49611",
+    "Radar.blp": "6e2d33ba446e293219ec5c610cb1ef5fb8ef031237c12d131f291df1008a253c",
+    "Replace.blp": "db1b3e5b73b850f4fc1be0871efdb62b16e2d010054a8345f3b19c305e6ab665",
+    "Reset.blp": "e3aab8473e41a162f096c8616b6a002fd3b7ca6fbd09745f40e7472d715c7009",
+    "Right.blp": "9046c02a0dae461deaf5cc4e7755f47ea3f32fdf9d78c8e0bcf387ef3f28d6d3",
+    "Rings.blp": "c5c202dc1f3acf5e296121b8dd6b4201b357c3981e77159dcd99049eb9054307",
+    "RollLeft.blp": "e82ebf1e6722dff0f1c88a815c76e16b46c7d86de68dbb48b10f4a0322dcf547",
+    "RollRight.blp": "d2a3caa447f0de30471e0a7dbbb5a1c1b261d424b7ec99be55ab8494b25d877f",
+    "Route.blp": "adccd5c948f653b496ad4486167379c5afd84eee7e6ad220531b9c5a1474ec39",
+    "Rulebook.blp": "27723511aa911f8dbf527d75e930b3dd9f798f99953b387a2c5c91f6a0b244c9",
+    "Run.blp": "512192ecf50570894d88c8152a8f8a506af0c635aa8de4262a5b9d971aaefe1d",
+    "ScaleDown.blp": "19fa77db5a969dd396e87bcbe4039db977b50c4002a3561a83844d9363922a45",
+    "ScaleUp.blp": "9ac38a14840f581b2910f574d320878d366dcd997aa5a3d8f3d9a8ddf8fac949",
+    "Search.blp": "0aea8eec8ab3e2156442dc31cebc7227987c764654c7c6dfe0bd31bb9eb0baa0",
+    "Select.blp": "b037251ade03ed501cbf2016cb870561df025538e2e3ab217ed96da5166b5364",
+    "ServerRemove.blp": "0ab190f2d061d3bcdc9db7d58c18b0991642924a92887f5825108e37f48ec384",
+    "Settings.blp": "cd1a287ca6fbe726d367e379caeb2a2161d5b0f0124084628e9b22f88697b591",
+    "Spawn.blp": "dffac37eed7c2ed84cad479f30bc0c3d7285b376b1d83d724477eadec15f749a",
+    "SpawnTemporary.blp": "3d0b20d214720317c63f7ad00431d3d5ad96566cc970faae9d7084e7c570e87c",
+    "Stop.blp": "b14b1e9ed1c8f456a2adf06c4b00f60e84fc61bf2bf42822241bcaa6f7316e1c",
+    "Talk.blp": "f098429461d83f285bad360d87ca2848ef090bb167374413bdc206bd089463c5",
+    "Teleport.blp": "61c6d2ff66c02220b246db82cc2d8e57e90bc5beae0c43fa23ea08c8b0bab6c5",
+    "Tools.blp": "b2f2b066e1fb7ceee599e68b27570b4e5e70c6e6df551cf018660725f6fe8935",
+    "Treasure.blp": "dbf5d080e3915dad7468bab8917f29893616fba0ee2e9ea7c8b69773068c24d9",
+    "Up.blp": "0172aa8e45e6ac26556e14ac30490b3f0f78e38ed4a35dd87c3425886d6396a6",
+    "Wait.blp": "2a47df427b1d38ebb3fd145d441abd641725a746fd98b11cec3e6d3a8eba30da",
+    "Walk.blp": "68962770661ed02d6ef1eb0143094a21058135b442bf602a58945fef8f3d4a2d",
+    "Whistle.blp": "4fb98a70d2a5afba78033a8b01d854cde794dcc1158f2e07583466f225301847"
+  },
+  "size": 256,
+  "cuts": [
+    {
+      "name": "Left",
+      "rect": [
+        34,
+        34,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Right",
+      "rect": [
+        444,
+        34,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "ForwardLeft",
+      "rect": [
+        853,
+        34,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "BackLeft",
+      "rect": [
+        1263,
+        34,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "BackRight",
+      "rect": [
+        1263,
+        34,
+        340,
+        340
+      ],
+      "transform": "RotateNoneFlipX",
+      "derived_from": "BackLeft",
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Up",
+      "rect": [
+        34,
+        444,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Down",
+      "rect": [
+        444,
+        444,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Select",
+      "rect": [
+        853,
+        444,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "ScaleDown",
+      "rect": [
+        1263,
+        444,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Radar",
+      "rect": [
+        1672,
+        444,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Clockwise",
+      "rect": [
+        34,
+        853,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Counterclockwise",
+      "rect": [
+        444,
+        853,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Reset",
+      "rect": [
+        853,
+        853,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "ScaleUp",
+      "rect": [
+        1263,
+        853,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Activate",
+      "rect": [
+        1672,
+        853,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Spawn",
+      "rect": [
+        34,
+        1263,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "SpawnTemporary",
+      "rect": [
+        444,
+        1263,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "PitchUp",
+      "rect": [
+        853,
+        1263,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "RollLeft",
+      "rect": [
+        1263,
+        1263,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "RollRight",
+      "rect": [
+        1672,
+        1263,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Duplicate",
+      "rect": [
+        34,
+        1672,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Replace",
+      "rect": [
+        444,
+        1672,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Teleport",
+      "rect": [
+        853,
+        1672,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Pull",
+      "rect": [
+        1263,
+        1672,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Delete",
+      "rect": [
+        1672,
+        1672,
+        340,
+        340
+      ],
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Forward",
+      "rect": [
+        444,
+        34,
+        340,
+        340
+      ],
+      "transform": "Rotate270FlipNone",
+      "derived_from": "Right",
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Backward",
+      "rect": [
+        444,
+        34,
+        340,
+        340
+      ],
+      "transform": "Rotate90FlipNone",
+      "derived_from": "Right",
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "ForwardRight",
+      "rect": [
+        853,
+        34,
+        340,
+        340
+      ],
+      "transform": "RotateNoneFlipX",
+      "derived_from": "ForwardLeft",
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "PitchDown",
+      "rect": [
+        853,
+        1263,
+        340,
+        340
+      ],
+      "transform": "RotateNoneFlipX",
+      "derived_from": "PitchUp",
+      "source": "MapperGoldSheet.jpg"
+    },
+    {
+      "name": "Apply",
+      "rect": [
+        46,
+        46,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Cancel",
+      "rect": [
+        456,
+        46,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Inspect",
+      "rect": [
+        865,
+        46,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Search",
+      "rect": [
+        1275,
+        46,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Info",
+      "rect": [
+        456,
+        456,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Map",
+      "rect": [
+        865,
+        456,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Compass",
+      "rect": [
+        1275,
+        456,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Settings",
+      "rect": [
+        1684,
+        456,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Gears",
+      "rect": [
+        46,
+        865,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Tools",
+      "rect": [
+        456,
+        865,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "ObjectGroup",
+      "rect": [
+        865,
+        865,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Link",
+      "rect": [
+        1275,
+        865,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Lock",
+      "rect": [
+        1684,
+        865,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "NPC",
+      "rect": [
+        46,
+        1275,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Group",
+      "rect": [
+        456,
+        1275,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Talk",
+      "rect": [
+        865,
+        1275,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Run",
+      "rect": [
+        1275,
+        1275,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Combat",
+      "rect": [
+        1684,
+        1275,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Portal",
+      "rect": [
+        46,
+        1684,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Crystal",
+      "rect": [
+        456,
+        1684,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Eye",
+      "rect": [
+        865,
+        1684,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Rings",
+      "rect": [
+        1275,
+        1684,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "Banner",
+      "rect": [
+        1684,
+        1684,
+        318,
+        318
+      ],
+      "source": "CommonActions.jpg"
+    },
+    {
+      "name": "FavoriteAdd",
+      "rect": [
+        34,
+        34,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "FavoriteRemove",
+      "rect": [
+        444,
+        34,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "MapPin",
+      "rect": [
+        853,
+        34,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "ServerRemove",
+      "rect": [
+        1263,
+        34,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Bookmark",
+      "rect": [
+        1672,
+        34,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Walk",
+      "rect": [
+        444,
+        444,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Route",
+      "rect": [
+        853,
+        444,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Play",
+      "rect": [
+        1263,
+        444,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Stop",
+      "rect": [
+        1672,
+        444,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Clear",
+      "rect": [
+        34,
+        853,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Wait",
+      "rect": [
+        444,
+        853,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "BakeNPC",
+      "rect": [
+        853,
+        853,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "BakeRoute",
+      "rect": [
+        1263,
+        853,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "BakeObject",
+      "rect": [
+        1672,
+        853,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Mannequin",
+      "rect": [
+        34,
+        1263,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Dragon",
+      "rect": [
+        444,
+        1263,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Army",
+      "rect": [
+        853,
+        1263,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Whistle",
+      "rect": [
+        1263,
+        1263,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "BattleDice",
+      "rect": [
+        1672,
+        1263,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Rulebook",
+      "rect": [
+        34,
+        1672,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Blueprint",
+      "rect": [
+        444,
+        1672,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Equipment",
+      "rect": [
+        853,
+        1672,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    },
+    {
+      "name": "Treasure",
+      "rect": [
+        1263,
+        1672,
+        340,
+        340
+      ],
+      "source": "CommonRoutes.jpg"
+    }
+  ],
+  "sources": [
+    {
+      "file": "MapperGoldSheet.jpg",
+      "original_name": "Gemini_Generated_Image_52xho352xho352xh.jpg",
+      "sha256": "b0f76ae5ab733adbb598ac4596b09a298199328db7315da62b9a3066f3b403dd"
+    },
+    {
+      "file": "CommonActions.jpg",
+      "original_name": "Gemini_Generated_Image_4ee3ek4ee3ek4ee3.jpg",
+      "sha256": "e9af42a004c0e6cf99cbe932092bacfa05b65f83dd6eb098b3e5c3bdc45e30ae"
+    },
+    {
+      "file": "CommonRoutes.jpg",
+      "original_name": "Gemini_Generated_Image_mmz09vmmz09vmmz0.jpg",
+      "sha256": "7cdb5c76af57ba890c7a5354c7a8675708fb695b8a84a0791db6d0bd2b48d994"
+    }
+  ],
+  "omitted": [
+    "second spyglass",
+    "second scroll",
+    "second running boot",
+    "second rings"
+  ]
+}
